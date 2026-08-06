@@ -52,8 +52,11 @@ main {
   background: linear-gradient(90deg, rgba(110, 231, 183, 0.2), rgba(96, 165, 250, 0.2));
   color: var(--accent);
 }
-.hero img {
+.visual-card { padding: 0.6rem; }
+.hero-visual {
+  display: block;
   width: 100%;
+  height: auto;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,0.08);
 }
@@ -71,6 +74,11 @@ main {
   gap: 1rem;
   margin-top: 1rem;
 }
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
 button {
   padding: 0.8rem 1rem;
   border: none;
@@ -85,11 +93,23 @@ button.secondary {
   color: var(--text);
   border: 1px solid rgba(255,255,255,0.2);
 }
+button:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.12);
+}
 .muted { color: var(--muted); }
 .highlight { color: var(--accent); }
 .safe { color: var(--accent); }
 .warn { color: var(--danger); }
 @media (max-width: 800px) {
   .hero, .grid { grid-template-columns: 1fr; }
+  .status-row { align-items: flex-start; flex-direction: column; }
   main { padding: 1rem 0.9rem 2rem; }
 }
