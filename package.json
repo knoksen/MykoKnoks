@@ -1,0 +1,11 @@
+{
+  "name": "mycoterra",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check app.js && node --check src/mycel.js"
+  }
+}

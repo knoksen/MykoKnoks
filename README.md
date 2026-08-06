@@ -2,11 +2,18 @@
 
 **MycoTerrain er klargjort for Blackbox AI 🚀**
 
-Dette repoet er satt opp som en **v0.1.1 Engineering Handoff**-pakke for videre utvikling, kvalitetssikring og kontrollert leveranse.
+Dette repoet er nå oppgradert til en enkel, kjørbar prosjektstruktur for videre utvikling, kvalitetssikring og kontrollert leveranse.
 
 ## Formål
 
 Gi Blackbox AI en komplett og operativ kontekst slik at videre arbeid kan utføres uten å rekonstruere prosjektets rammer, avgrensninger og prioriteringer.
+
+## Nytt i denne oppsettet
+
+- Minimal web-app-skall med lokal server
+- Grundleggende app-logikk for artsprofil og sikkerhetsregler
+- Testdekning for språk- og sikkerhetslogikk
+- Verifiserte syntax- og testkjøringer
 
 ## Start her
 

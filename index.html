@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MycoTerrain</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 2rem; background: #0f172a; color: #f8fafc; }
+      main { max-width: 720px; margin: 0 auto; }
+      .card { background: #111827; padding: 1.25rem; border-radius: 12px; margin-bottom: 1rem; }
+      button { padding: 0.6rem 1rem; border: none; border-radius: 8px; cursor: pointer; }
+      .pill { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 999px; background: #1d4ed8; margin-right: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card">
+        <h1>MycoTerrain</h1>
+        <p>Mycel-Network demo scaffold for the Blackbox handoff.</p>
+        <div>
+          <span class="pill">Demo</span>
+          <span class="pill">Safety-first</span>
+          <span class="pill">Local-only</span>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Species control</h2>
+        <p id="species">Species: Psilocybe semilanceata</p>
+        <p id="forecast">Forecast enabled: false</p>
+        <button id="toggle">Toggle forecast</button>
+      </section>
+    </main>
+    <script type="module">
+      import { createAppState, toggleForecast, setSpecies } from './app.js';
+      const state = createAppState();
+      const speciesEl = document.getElementById('species');
+      const forecastEl = document.getElementById('forecast');
+      const toggleBtn = document.getElementById('toggle');
+      const updateView = () => {
+        speciesEl.textContent = `Species: ${state.species}`;
+        forecastEl.textContent = `Forecast enabled: ${state.forecastEnabled}`;
+      };
+      toggleBtn.addEventListener('click', () => {
+        state.forecastEnabled = toggleForecast();
+        setSpecies(state.species);
+        updateView();
+      });
+      updateView();
+    </script>
+  </body>
+</html>

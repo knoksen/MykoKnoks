@@ -15,15 +15,26 @@ Alle oppgaver skal dokumentere status, testbevis og eventuelle blokkeringer.
   - `AGENTS.md`
   - `TODO_BLACKBOX.md`
   - `TODO_PROGRESS.md` (denne filen)
+- La til en enkel kjørbar prosjektstruktur med:
+  - `package.json`
+  - `server.js`
+  - `index.html`
+  - `app.js`
+  - `src/mycel.js`
+  - `test/mycel.test.js`
 
 ### Testbevis
 
-- Dokumentopprettelse verifisert i arbeidskatalog.
-- Strukturell konsistens sjekket manuelt mot handoff-krav.
+- Kommando: `npm test`
+- Resultat: Bestått
+- Notat: 3 tester bestått, 0 feil.
+- Kommando: `npm run check`
+- Resultat: Bestått
+- Notat: JS-syntaks sjekket for server, app og mycel-modul.
 
 ### Blokkeringer
 
-- Ingen teknisk blokkering for dokumentopprettelse.
+- Ingen teknisk blokkering for dette grunnoppsettet.
 
 ---
 
