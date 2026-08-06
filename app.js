@@ -1,21 +1,47 @@
+import { enforceForecastPolicy, isControlledSpecies } from './src/mycel.js';
+
+const DEFAULT_SPECIES = 'Psilocybe semilanceata';
+
 const appState = {
-  species: 'Psilocybe semilanceata',
+  species: DEFAULT_SPECIES,
   forecastEnabled: false,
   notes: []
 };
 
 export function createAppState() {
-  return { ...appState, notes: [...appState.notes] };
+  return {
+    ...appState,
+    forecastRestricted: isControlledSpecies(appState.species),
+    notes: [...appState.notes]
+  };
 }
 
 export function setSpecies(species) {
   appState.species = species;
+  appState.forecastEnabled = enforceForecastPolicy(
+    appState.species,
+    appState.forecastEnabled
+  );
   return appState.species;
 }
 
 export function toggleForecast() {
-  appState.forecastEnabled = !appState.forecastEnabled;
+  appState.forecastEnabled = enforceForecastPolicy(
+    appState.species,
+    !appState.forecastEnabled
+  );
   return appState.forecastEnabled;
+}
+
+export function isForecastRestricted() {
+  return isControlledSpecies(appState.species);
+}
+
+export function resetAppState() {
+  appState.species = DEFAULT_SPECIES;
+  appState.forecastEnabled = false;
+  appState.notes = [];
+  return createAppState();
 }
 
 export function addNote(text) {
