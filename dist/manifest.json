@@ -1,7 +1,7 @@
 {
   "name": "MycoTerrain",
-  "version": "0.1.1",
-  "createdAt": "2026-08-06T03:24:30.638Z",
+  "version": "0.1.2",
+  "createdAt": "2026-08-06T05:05:49.863Z",
   "checks": [
     "npm test",
     "npm run check"

@@ -2,18 +2,19 @@
 
 **MycoTerrain er klargjort for Blackbox AI 🚀**
 
-Dette repoet er nå oppgradert til en enkel, kjørbar prosjektstruktur for videre utvikling, kvalitetssikring og kontrollert leveranse.
+Dette repoet inneholder en enkel, kjørbar prosjektstruktur for videre utvikling, kvalitetssikring og kontrollert leveranse.
 
 ## Formål
 
 Gi Blackbox AI en komplett og operativ kontekst slik at videre arbeid kan utføres uten å rekonstruere prosjektets rammer, avgrensninger og prioriteringer.
 
-## Nytt i denne oppsettet
+## Innhold
 
-- Minimal web-app-skall med lokal server
-- Grundleggende app-logikk for artsprofil og sikkerhetsregler
-- Testdekning for språk- og sikkerhetslogikk
-- Verifiserte syntax- og testkjøringer
+- Minimal web-app med lokal Node-server
+- Grunnleggende app-logikk for artsprofil og sikkerhetsregler
+- Eksplisitt policyhåndheving for kontrollerte psykoaktive arter
+- Lokal, selvstendig illustrasjon uten eksterne bildeavhengigheter
+- Automatiserte tester, syntakskontroll og byggbar ZIP-presentasjon
 
 ## Start her
 
@@ -29,37 +30,38 @@ Les i denne rekkefølgen:
 8. `docs/OMITTED_AND_DEFERRED.md`
 9. `docs/BLACKBOX_DELIVERY_REPORT_TEMPLATE.md`
 
-## Verifisert status (handoff)
+## Verifisert status – v0.1.2
 
-- 10 av 10 tester bestått (siste dokumenterte baseline)
 - `npm run check` bestått
-- JavaScript-syntakskontroll bestått
-- JSON-validering bestått
-- ZIP-integritet kontrollert uten feil
-- SHA-256 generert
+- `npm test` bestått: 6/6 tester
+- `npm run build` bestått
+- Post-build `check` og `test` bestått
+- Desktop- og mobilrendering kontrollert i Chromium
+- ZIP-integritet, innhold, hemmelighetsskann, ekstraksjon og runtime kontrollert
+- Ekstrahert ZIP: `/` → 200, manglende fil → 404, traversal-forsøk → 404
+- SHA-256 for validert ZIP dokumentert i leveranserapporten
 
 ## Viktige avgrensninger
 
 Ikke inkludert i denne pakken:
 
-- Build/distribusjon-artefakter (bl.a. `package-lock.json`, `node_modules`, APK/AAB, Windows installer)
+- APK/AAB eller signert Windows-installer
 - Produksjonsdatasett og vitenskapelig validert habitatmodell
-- Backend/autentisering/synk/personvern-juridisk publisering
-- Flere planlagte produktfunksjoner (offlinekart, eksport/import, AI-identifikasjon m.m.)
+- Backend, autentisering, synk og publisert personvern-/juridisk løsning
+- Planlagte produktfunksjoner som offlinekart, eksport/import og AI-identifikasjon
 
 Se full liste i `docs/OMITTED_AND_DEFERRED.md`.
 
 ## Kritisk sikkerhets- og etikkpolicy
 
-Prosjektet inkluderer ikke funksjonalitet som gir handlingsrettet støtte for kontrollerte psykoaktive arter (presise hotspots, ruter, prognoser).
+Prosjektet inkluderer ikke funksjonalitet som gir handlingsrettet støtte for kontrollerte psykoaktive arter, herunder presise hotspots, innsamlingsruter eller prognoser.
 
-`Psilocybe semilanceata` skal forbli en ikke-handlingsrettet informasjonsprofil med:
+`Psilocybe semilanceata` er en ikke-handlingsrettet informasjonsprofil med håndhevet:
 
 - `forecastEnabled: false`
 
-Se `SECURITY.md` og `AGENTS.md` for detaljer.
+Regelen håndheves både i domenelogikken, app-tilstanden, UI-et og automatiserte regresjonstester.
 
 ## Videre arbeid
 
-Prioritert backlog ligger i `TODO_BLACKBOX.md` (P0–P3).  
-Løpende utførelse, testbevis og blokkeringer loggføres i `TODO_PROGRESS.md`.
+Prioritert backlog ligger i `TODO_BLACKBOX.md`. Løpende utførelse, testbevis og blokkeringer loggføres i `TODO_PROGRESS.md`.

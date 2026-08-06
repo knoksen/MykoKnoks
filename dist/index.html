@@ -18,19 +18,49 @@
             <span class="badge">Local-only</span>
             <span class="badge">GitHub-ready</span>
           </div>
-          <div class="status-row">
+          <div class="status-row" aria-live="polite">
             <div>
               <strong id="species">Species: Psilocybe semilanceata</strong>
               <div id="forecast" class="muted">Forecast enabled: false</div>
+              <div id="policy" class="safe">Controlled-species policy: forecasting disabled.</div>
             </div>
-            <div>
-              <button id="toggle">Toggle demo mode</button>
-              <button id="refresh" class="secondary">Refresh status</button>
+            <div class="status-actions">
+              <button id="toggle" type="button" aria-describedby="policy">Forecast unavailable</button>
+              <button id="refresh" type="button" class="secondary">Refresh status</button>
             </div>
           </div>
         </div>
-        <div class="card">
-          <img src="https://images.unsplash.com/photo-1501004318641-b39e6451afbe?auto=format&fit=crop&w=900&q=80" alt="Forest floor and mushrooms" />
+        <div class="card visual-card">
+          <svg class="hero-visual" viewBox="0 0 900 620" role="img" aria-labelledby="forest-title forest-desc">
+            <title id="forest-title">Abstract forest floor and mycelium illustration</title>
+            <desc id="forest-desc">A local decorative illustration of layered terrain, mushrooms and a branching mycelium network.</desc>
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#10233c" />
+                <stop offset="1" stop-color="#07111f" />
+              </linearGradient>
+              <linearGradient id="ground" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#183c36" />
+                <stop offset="1" stop-color="#0a211f" />
+              </linearGradient>
+            </defs>
+            <rect width="900" height="620" rx="28" fill="url(#sky)" />
+            <path d="M0 360C170 300 280 410 440 348C620 278 710 378 900 312V620H0Z" fill="url(#ground)" />
+            <g fill="none" stroke="#6ee7b7" stroke-linecap="round" opacity="0.7">
+              <path d="M180 520C270 450 340 470 410 390S560 310 690 350" stroke-width="8" />
+              <path d="M390 410C350 370 310 350 260 340" stroke-width="5" />
+              <path d="M430 385C480 430 530 450 590 470" stroke-width="5" />
+              <path d="M535 325C590 280 650 260 730 270" stroke-width="4" />
+            </g>
+            <g>
+              <path d="M255 420C255 350 295 315 330 315C365 315 405 350 405 420Z" fill="#e6c98a" />
+              <rect x="316" y="418" width="28" height="96" rx="14" fill="#d7bea1" />
+              <path d="M560 390C560 340 590 315 620 315C650 315 680 340 680 390Z" fill="#9db0c9" />
+              <rect x="609" y="388" width="23" height="80" rx="11" fill="#c8d3df" />
+            </g>
+            <circle cx="725" cy="145" r="74" fill="#60a5fa" opacity="0.18" />
+            <circle cx="725" cy="145" r="42" fill="#6ee7b7" opacity="0.25" />
+          </svg>
         </div>
       </section>
 
@@ -56,20 +86,35 @@
       </section>
     </main>
     <script type="module">
-      import { createAppState, toggleForecast, setSpecies } from './app.js';
-      const state = createAppState();
+      import {
+        createAppState,
+        isForecastRestricted,
+        toggleForecast
+      } from './app.js';
+
+      let state = createAppState();
       const speciesEl = document.getElementById('species');
       const forecastEl = document.getElementById('forecast');
+      const policyEl = document.getElementById('policy');
       const toggleBtn = document.getElementById('toggle');
       const refreshBtn = document.getElementById('refresh');
+
       const updateView = () => {
+        state = createAppState();
+        const restricted = isForecastRestricted();
         speciesEl.textContent = `Species: ${state.species}`;
         forecastEl.textContent = `Forecast enabled: ${state.forecastEnabled}`;
         forecastEl.className = state.forecastEnabled ? 'warn' : 'muted';
+        policyEl.textContent = restricted
+          ? 'Controlled-species policy: forecasting disabled.'
+          : 'Forecasting is available for this non-controlled profile.';
+        policyEl.className = restricted ? 'safe' : 'muted';
+        toggleBtn.disabled = restricted;
+        toggleBtn.textContent = restricted ? 'Forecast unavailable' : 'Toggle forecast';
       };
+
       toggleBtn.addEventListener('click', () => {
-        state.forecastEnabled = toggleForecast();
-        setSpecies(state.species);
+        toggleForecast();
         updateView();
       });
       refreshBtn.addEventListener('click', updateView);
