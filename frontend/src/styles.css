@@ -45,3 +45,14 @@ button:disabled { opacity:.5; }
 .popup-grid span { color:#8da095; }
 .popup-source { border-top:1px solid #284036; margin-top:8px; padding-top:7px; font-size:9px; color:#6fd494; }
 @media (max-width: 850px) { main{padding:14px}.hero{align-items:start;flex-direction:column}.layout{grid-template-columns:1fr}.map-shell,.map{min-height:58vh}.panel{order:2;max-height:none}.map-shell{order:1}.badge{white-space:normal}.stats.four{grid-template-columns:repeat(2,1fr)} }
+
+.action-row { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+button.secondary { background: transparent; border: 1px solid rgba(216,243,220,.35); color: #d8f3dc; }
+.standalone-note { display: block; margin-top: .65rem; opacity: .72; line-height: 1.35; }
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; }
+  .panel { max-height: none; }
+  .map-shell { min-height: 58vh; }
+  .hero { padding: 1rem; }
+  .action-row { grid-template-columns: 1fr; }
+}
