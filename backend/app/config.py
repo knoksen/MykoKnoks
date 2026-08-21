@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "MykoKnoks"
     app_version: str = "0.2.0"
     api_prefix: str = "/api/v1"
+    root_path: str = ""
     cors_origins: str = "http://localhost:5173"
     database_url: str = "postgresql+psycopg://mykoknoks:mykoknoks@localhost:5432/mykoknoks"
 
