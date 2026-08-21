@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mykoknoks-api"
-version = "0.1.0"
-description = "Nordic fungal habitat and fruiting forecast API"
+version = "0.2.0"
+description = "Nordic fungal habitat, occurrence and fruiting forecast API"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.116,<1",
@@ -19,7 +19,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.4,<9", "pytest-asyncio>=1.1,<2", "ruff>=0.12,<1"]
-ml = ["pandas>=2.3,<3", "scikit-learn>=1.7,<2", "joblib>=1.5,<2"]
+ml = [
+  "pandas>=2.3,<3",
+  "pyarrow>=21,<22",
+  "scikit-learn>=1.7,<2",
+  "joblib>=1.5,<2",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

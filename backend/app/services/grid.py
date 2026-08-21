@@ -12,6 +12,10 @@ def _stable_unit(value: str, salt: str) -> float:
 
 
 def synthetic_habitat_features(cell: str) -> HabitatFeatures:
+    """Deterministic synthetic features so the full MVP runs before raster ingestion.
+
+    These values MUST NOT be interpreted as real environmental measurements.
+    """
     return HabitatFeatures(
         grassland=_stable_unit(cell, "grassland"),
         forest_edge=_stable_unit(cell, "edge"),
@@ -21,7 +25,7 @@ def synthetic_habitat_features(cell: str) -> HabitatFeatures:
 
 
 def _h3():
-    import h3
+    import h3  # lazy import keeps health/meta endpoints usable in minimal environments
     return h3
 
 
@@ -39,3 +43,9 @@ def cell_geometry(cell: str) -> dict:
     coordinates = [[lon, lat] for lat, lon in boundary]
     coordinates.append(coordinates[0])
     return {"type": "Polygon", "coordinates": [coordinates]}
+
+
+def cell_center(cell: str) -> list[float]:
+    h3 = _h3()
+    lat, lon = h3.cell_to_latlng(cell)
+    return [lon, lat]

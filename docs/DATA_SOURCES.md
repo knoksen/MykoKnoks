@@ -1,54 +1,51 @@
-# Norwegian & Nordic data-source plan
+# Data sources
 
-## Artsdatabanken — Artskart
+MykoKnoks uses a source-registry approach. Endpoints are configurable through environment variables so upstream service changes do not require rewriting scoring logic.
 
-Purpose: georeferenced species occurrences for training and validation.
+## Artsdatabanken
 
-- Public API: `https://artskart.artsdatabanken.no/publicapi/`
-- Observations: `/api/Observations/list/`
-- Taxonomy: `/api/taxon`
-- Preserve source record ID, dataset ID, coordinate uncertainty and raw provenance.
+- Artskart public API for observations and taxonomy.
+- Artsobservasjoner / Darwin Core bulk datasets are preferred for large reproducible training snapshots.
+- Observation data must retain source ids, dates, coordinate uncertainty and dataset attribution.
 
 ## MET Norway
 
-Purpose: current/forecast fruiting conditions and later historical feature engineering.
+- Locationforecast 2.0 for operational weather forecasts.
+- MykoKnoks supplies an identifying User-Agent as required by MET Norway.
+- Historical/lagged weather requires a dedicated ingestion strategy and is not yet claimed as complete in v0.2.
 
-- `https://api.met.no/weatherapi/locationforecast/2.0/compact`
-- Requires a unique identifying `User-Agent`.
-- Nordic short-range forecasts use MEPS; MET documents 2.5 km horizontal resolution for 0–60 hours.
+## Kartverket / Geonorge
 
-Candidate lag features: temperature 3/7/14/21 d, precipitation 3/7/14/21/30 d, humidity duration, dry-spell length and temperature × moisture interactions.
+- Elevation WPS is used for point-level real terrain/elevation evidence.
+- Production terrain derivatives should be generated from downloaded DTM coverage rather than issuing a point request for every national H3 cell.
 
-## NIBIO SR16
+## NIBIO
 
-Purpose: forest structure, dominant tree species and forest context.
+- AR5: land-resource / land-cover evidence.
+- SR16: forest-resource evidence.
+- v0.2 discovers WMS layers dynamically and can issue point feature-info probes.
+- Production H3 features should be built from bulk vector/raster data to obtain area fractions and robust statistics.
 
-WMS: `https://wms.nibio.no/cgi-bin/sr16?VERSION=1.3.0&SERVICE=WMS&REQUEST=GetCapabilities`
+## NGU
 
-The 2026 product includes raster/vector products and properties such as tree species, volume, mean height, biomass and site index.
+- Løsmasser WMS provides Quaternary-geology evidence.
+- NGU attribution and NLOD requirements must be retained with derived products.
+- Prefer OGC API Features / bulk vector access for production normalization when practical.
 
-## NIBIO AR5
+## Copernicus
 
-Purpose: fine-scale land-resource classes, especially grassland, cultivated land, forest and open land. Use official NIBIO/Geonorge services and persist dataset versions.
+- Sentinel-2 L2A discovery via Copernicus Data Space STAC.
+- Production vegetation features require cloud masking, seasonal composites and a documented index pipeline.
 
-## Kartverket — National Detailed Height Model
+## Provenance fields
 
-Purpose: elevation, slope, aspect and wetness/topographic-position proxies. Kartverket documents national 1 m terrain data plus 1/10/50 m terrain-model products and API/download access.
+At minimum retain:
 
-## NGU — loose sediments / geology
-
-Purpose: substrate and drainage correlates.
-
-WMS: `https://geo.ngu.no/mapserver/LosmasserWMS2`
-
-## Copernicus Sentinel-2
-
-Purpose: vegetation condition, phenology and moisture proxies.
-
-Current CDSE STAC endpoint: `https://stac.dataspace.copernicus.eu/v1/`
-
-Use Sentinel-2 Level-2A with cloud masking and derived vegetation/moisture indices. Do not use the legacy STAC endpoint deprecated in 2025.
-
-## Storage
-
-Raw JSON/NDJSON + provenance; COG for rasters; Parquet/GeoParquet for analytical tables; PostGIS for serving/querying; PMTiles for map delivery; H3 as spatial key.
+- source id
+- source dataset/layer
+- acquisition time
+- feature version
+- raw payload or immutable raw-file reference
+- license/attribution metadata
+- normalization code/model version
+- quality/completeness indicators
