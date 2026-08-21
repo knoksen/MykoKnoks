@@ -1,34 +1,59 @@
 # Architecture
 
-## Design principles
+## Design goals
 
-1. Separate **habitat suitability** from **fruiting conditions**.
-2. Preserve provenance: source, acquisition date, version and transformation metadata.
-3. Validate models spatially; random row splits exaggerate skill with autocorrelated ecological data.
-4. Protect sensitive locations and private observations.
-5. Prefer open standards: GeoJSON, COG, STAC, OGC APIs, GeoParquet, H3 and PMTiles.
+MykoKnoks is built around reproducibility, spatial lineage, explicit uncertainty and low-latency serving. Public geodata services are treated as upstream evidence providers, not as a runtime database for every map pan.
 
-## Target production pipeline
+## Runtime paths
+
+### Demo mode
+
+Deterministic H3 placeholders exercise the complete UI/API path without claiming ecological validity.
+
+### Live mode
+
+The API performs a bounded number of Kartverket elevation/terrain point queries. This is useful for validation and demonstrations. Live mode is intentionally capped to avoid abusive fan-out against public services.
+
+### Feature-store mode
+
+Production serving reads normalized H3 features from PostGIS. Cells absent from the store are clearly marked as fallback/synthetic instead of silently pretending to contain real measurements.
+
+## Ingestion path
 
 ```text
-Artskart / GBIF -------> occurrence lake -------+
-NIBIO AR5/SR16 -------> environmental features  |
-Kartverket DTM --------> terrain features         |--> H3 feature store --> SDM --+
-NGU geology -----------> substrate features      |                              |
-Sentinel-2 -----------> EO features -------------+                              |
-                                                                                +--> Forecast API --> MapLibre PWA
-MET forecast ----------> temporal features ------------------------------------+
-MET historical --------> lagged weather ---------------------------------------+
+OGC/API/STAC source
+      │
+      ▼
+source-specific adapter
+      │
+      ▼
+raw evidence + source metadata
+      │
+      ├────────► env_feature_evidence
+      │
+      ▼
+normalization / aggregation
+      │
+      ▼
+H3 env_features
+      │
+      ├────────► model training
+      └────────► low-latency API serving
 ```
 
-Default display/feature grid is H3 resolution 9. Original observations and rasters remain at native resolution; H3 is an indexing/analysis layer, not a statement that every input has ~0.1 km² precision.
+## Why H3
 
-## Model evolution
+H3 provides stable cell identifiers, hierarchical spatial grouping, neighbourhood operations and a convenient bridge between raster, vector, occurrence and model-output datasets. It also supports spatial-block validation by grouping fine cells into coarser parents.
 
-- v0.1: transparent heuristic + live weather + synthetic habitat demo.
-- v0.2: real H3 environmental feature store and occurrence ingestion.
-- v0.3: species-specific gradient boosting SDM with spatial block validation.
-- v0.4: temporal fruiting model with lagged weather.
-- v0.5: calibrated uncertainty, ensemble models and observation feedback.
+## Why retain raw evidence
 
-Each prediction should expose habitat score, fruiting score, combined score, confidence, model version and top drivers.
+A derived field such as `soil_moisture_proxy=0.78` is not self-explanatory. The platform stores the underlying source payload, acquisition time and source id separately so normalization logic can be audited and rerun.
+
+## Production constraints
+
+- Use batch/bulk downloads where providers recommend them.
+- Cache capabilities and metadata.
+- Rate-limit live probes.
+- Record source licenses and attribution.
+- Do not expose sensitive occurrence coordinates for rare/protected taxa without a privacy policy.
+- Do not train/evaluate spatial models with naive random splits alone.
