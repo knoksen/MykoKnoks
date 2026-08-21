@@ -80,7 +80,6 @@ export default function App() {
         return loadSources()
       })
       .catch(() => {
-        // Keep the candidate visible, but fall safely back to a fully local demo.
         setApiBaseUrl('')
         setApiConnected(false)
         setApiStatus('Saved server unavailable · running offline demo')
@@ -145,7 +144,7 @@ export default function App() {
 
   function changeMode(mode: DataMode) {
     if (mode !== 'demo' && !apiConnected) {
-      setError('Koble til MykoKnoks HTTPS API før Live eller PostGIS store brukes.')
+      setError('Koble til MykoKnoks HTTPS API før Live eller H3 Store brukes.')
       return
     }
     setError('')
@@ -165,7 +164,7 @@ export default function App() {
           <p className="lead">Observed nature + terrain + weather → auditable habitat intelligence.</p>
         </div>
         <div className={`badge ${apiConnected ? 'online' : ''}`}>
-          v0.2.3 · {apiConnected ? 'LIVE API CONNECTED' : 'OFFLINE READY'}
+          v0.2.4 · {apiConnected ? 'LIVE API CONNECTED' : 'OFFLINE READY'}
         </div>
       </header>
 
@@ -209,21 +208,11 @@ export default function App() {
             <div className="twocol">
               <label>
                 Latitude
-                <input
-                  type="number"
-                  step="0.001"
-                  value={lat}
-                  onChange={e => setLat(Number(e.target.value))}
-                />
+                <input type="number" step="0.001" value={lat} onChange={e => setLat(Number(e.target.value))} />
               </label>
               <label>
                 Longitude
-                <input
-                  type="number"
-                  step="0.001"
-                  value={lon}
-                  onChange={e => setLon(Number(e.target.value))}
-                />
+                <input type="number" step="0.001" value={lon} onChange={e => setLon(Number(e.target.value))} />
               </label>
             </div>
             <div className="twocol">
@@ -232,7 +221,7 @@ export default function App() {
                 <select value={dataMode} onChange={e => changeMode(e.target.value as DataMode)}>
                   <option value="demo">Demo · local</option>
                   <option value="live" disabled={!apiConnected}>Live Norway probe</option>
-                  <option value="store" disabled={!apiConnected}>PostGIS feature store</option>
+                  <option value="store" disabled={!apiConnected}>H3 feature store</option>
                 </select>
               </label>
               <label>
@@ -282,7 +271,7 @@ export default function App() {
                 ? 'Deterministic synthetic habitat generated locally on the phone; useful for UI and pipeline testing.'
                 : dataMode === 'live'
                   ? 'Queries real Kartverket terrain/elevation per H3 cell with a strict request cap.'
-                  : 'Serves pre-ingested H3 environmental features from PostGIS; cache misses stay visibly marked.'}
+                  : 'Serves pre-ingested H3 environmental features from the configured feature store. Ultra uses SQLite; PostgreSQL remains supported.'}
             </p>
           </div>
 
