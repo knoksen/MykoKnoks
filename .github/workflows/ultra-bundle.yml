@@ -1,0 +1,37 @@
+name: Ultra Deployment Bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'deploy/ultra/**'
+      - '.github/workflows/ultra-bundle.yml'
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate installer syntax
+        run: bash -n deploy/ultra/*.sh
+
+      - name: Build userspace deployment bundle
+        run: |
+          mkdir -p dist
+          tar -czf dist/MykoKnoks-Ultra-bundle.tar.gz \
+            backend \
+            deploy/ultra \
+            README.md
+          sha256sum dist/MykoKnoks-Ultra-bundle.tar.gz | tee dist/SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MykoKnoks-Ultra-bundle
+          path: |
+            dist/MykoKnoks-Ultra-bundle.tar.gz
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
