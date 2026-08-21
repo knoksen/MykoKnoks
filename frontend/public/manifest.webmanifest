@@ -1,0 +1,10 @@
+{
+  "name": "MykoKnoks — Nordic Fungal Forecast",
+  "short_name": "MykoKnoks",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1210",
+  "theme_color": "#101b17",
+  "description": "Explainable Nordic fungal habitat and fruiting forecasts.",
+  "icons": [{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

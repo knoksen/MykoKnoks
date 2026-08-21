@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+node_modules/
+dist/
+coverage/
+*.joblib
+*.parquet
+*.pmtiles
+.DS_Store
