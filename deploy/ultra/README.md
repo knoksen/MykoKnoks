@@ -37,13 +37,15 @@ The installer:
 1. detects and validates an Ultra-assigned port;
 2. creates a Python virtual environment under `~/.local/share/mykoknoks/venv`;
 3. installs the FastAPI backend in that venv;
-4. creates a user-level `mykoknoks.service`;
-5. configures FastAPI `ROOT_PATH=/mykoknoks-api` for correct reverse-proxy URL generation;
-6. creates `~/.apps/nginx/proxy.d/mykoknoks.conf`;
-7. restarts the Ultra Nginx service with `app-nginx restart`;
-8. starts/enables MykoKnoks with `systemctl --user`;
-9. tests both local `/health` and the public HTTPS proxy;
-10. saves deployment metadata to `~/.local/share/mykoknoks/deployment.env`.
+4. creates `~/.local/share/mykoknoks/features.sqlite` as the lightweight H3 feature store;
+5. configures `DATABASE_URL=sqlite:///.../features.sqlite` for Store mode;
+6. creates a user-level `mykoknoks.service`;
+7. configures FastAPI `ROOT_PATH=/mykoknoks-api` for correct reverse-proxy URL generation;
+8. creates `~/.apps/nginx/proxy.d/mykoknoks.conf`;
+9. restarts the Ultra Nginx service with `app-nginx restart`;
+10. starts/enables MykoKnoks with `systemctl --user`;
+11. tests both local `/health` and the public HTTPS proxy;
+12. saves deployment metadata to `~/.local/share/mykoknoks/deployment.env`.
 
 ## Verify
 
@@ -52,6 +54,8 @@ Run the status helper:
 ```bash
 bash deploy/ultra/status.sh
 ```
+
+It reports service state, local/public health, SQLite path/size, H3 feature count, evidence count and recent logs.
 
 Or manually:
 
@@ -71,7 +75,56 @@ Android v0.2.3+ no longer hardcodes one backend at compile time. In the app, ope
 https://knoksen.nova.usbx.me/mykoknoks-api
 ```
 
-Tap **Test & connect**. Live and PostGIS modes remain disabled until the HTTPS health check succeeds. Demo mode always runs locally on-device, including when the server is offline.
+Tap **Test & connect**. Live and H3 Store modes remain disabled until the HTTPS health check succeeds. Demo scores and H3 cells run locally on-device; the current MapLibre basemap still needs internet access.
+
+## Populate the H3 feature store
+
+The SQLite store starts empty. Build a bounded real-data H3 snapshot first:
+
+```bash
+~/.local/share/mykoknoks/venv/bin/python scripts/ingest_live_features.py \
+  --lat 58.735 --lon 5.647 \
+  --radius-km 1 \
+  --resolution 9 \
+  --out data/jaren.jsonl
+```
+
+For a faster terrain-focused first ingest:
+
+```bash
+~/.local/share/mykoknoks/venv/bin/python scripts/ingest_live_features.py \
+  --lat 58.735 --lon 5.647 \
+  --radius-km 1 \
+  --resolution 9 \
+  --fast \
+  --out data/jaren-fast.jsonl
+```
+
+Load the snapshot into Ultra's lightweight feature store:
+
+```bash
+~/.local/share/mykoknoks/venv/bin/python scripts/load_feature_store_lite.py \
+  data/jaren.jsonl \
+  --database ~/.local/share/mykoknoks/features.sqlite
+```
+
+Then verify row counts:
+
+```bash
+bash deploy/ultra/status.sh
+```
+
+The API reconstructs map geometry from each H3 index, so serving scalar environmental features does not require a spatial database extension. PostgreSQL remains supported by the repository and PostGIS remains the preferred option when a full spatial warehouse is available later.
+
+## Store-mode request
+
+After loading cells, verify the cached path directly:
+
+```bash
+curl -fsS 'https://knoksen.nova.usbx.me/mykoknoks-api/api/v1/cells?lat=58.735&lon=5.647&radius_km=1&resolution=9&data_mode=store'
+```
+
+Inspect `metadata.feature_store_backend`, `feature_store_hits`, `feature_store_total` and each cell's provenance. Cache misses remain visibly marked and never masquerade as measured environmental data.
 
 ## Logs
 
@@ -97,8 +150,8 @@ bash deploy/ultra/status.sh
 
 ## Data modes on Ultra
 
-- `demo`: generated locally by Android/web UI; does not require Ultra.
-- `live`: FastAPI queries bounded live Norwegian data adapters; this is the first production target on Ultra.
-- `store`: requires a reachable PostgreSQL/PostGIS database and a production `DATABASE_URL`. It intentionally remains unavailable until that database layer is deployed.
+- `demo`: H3 scores generated locally by Android/web UI; no MykoKnoks backend required.
+- `live`: FastAPI queries bounded live Norwegian data adapters.
+- `store`: FastAPI serves pre-ingested H3 features from SQLite on Ultra; the same repository layer also supports PostgreSQL.
 
 The public path is stripped by Nginx before requests reach Uvicorn. FastAPI receives `ROOT_PATH=/mykoknoks-api`, which keeps OpenAPI and generated public URLs reverse-proxy aware.
