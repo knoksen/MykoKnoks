@@ -3,15 +3,23 @@ package no.jarlhalla.mykoknoks;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.webkit.WebViewAssetLoader;
+
 public class MainActivity extends Activity {
     private static final int LOCATION_REQUEST = 42;
+    private static final String START_URL =
+            "https://appassets.androidplatform.net/assets/www/index.html";
+
     private WebView webView;
     private String pendingOrigin;
     private GeolocationPermissions.Callback pendingCallback;
@@ -19,6 +27,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .build();
 
         webView = new WebView(this);
         setContentView(webView);
@@ -28,11 +40,25 @@ public class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setGeolocationEnabled(true);
-        settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(true);
+        settings.setAllowFileAccess(false);
+        settings.setAllowContentAccess(false);
         settings.setMediaPlaybackRequiresUserGesture(false);
 
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(
+                    WebView view,
+                    WebResourceRequest request
+            ) {
+                Uri url = request.getUrl();
+                WebResourceResponse response = assetLoader.shouldInterceptRequest(url);
+                if (response != null) {
+                    return response;
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
+        });
+
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onGeolocationPermissionsShowPrompt(
@@ -57,7 +83,7 @@ public class MainActivity extends Activity {
         });
 
         if (savedInstanceState == null) {
-            webView.loadUrl("file:///android_asset/www/index.html");
+            webView.loadUrl(START_URL);
         } else {
             webView.restoreState(savedInstanceState);
         }
