@@ -1,4 +1,10 @@
-from app.scoring import HabitatFeatures, WeatherFeatures, combine_scores, fruiting_score, habitat_score
+from app.scoring import (
+    HabitatFeatures,
+    WeatherFeatures,
+    combine_scores,
+    fruiting_score,
+    habitat_score,
+)
 
 
 def test_scores_are_bounded():

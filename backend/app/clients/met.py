@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import httpx
+
 from app.schemas import WeatherSnapshot
 
 
@@ -18,6 +19,7 @@ class MetNorwayClient:
             response = await client.get(self.BASE_URL, params=params)
             response.raise_for_status()
             payload = response.json()
+
         series = payload["properties"]["timeseries"][0]
         instant = series["data"]["instant"]["details"]
         next_1h = series["data"].get("next_1_hours", {}).get("details", {})

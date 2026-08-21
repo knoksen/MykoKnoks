@@ -1,6 +1,5 @@
 from app.clients.kartverket import parse_elevation_response
 
-
 SAMPLE = """<?xml version='1.0'?>
 <wps:ExecuteResponse xmlns:wps='http://www.opengis.net/wps/1.0.0'
                      xmlns:ows='http://www.opengis.net/ows/1.1'>

@@ -1,6 +1,5 @@
 from app.clients.ogc import lonlat_to_web_mercator, parse_wms_layers
 
-
 CAPABILITIES = """<WMS_Capabilities xmlns='http://www.opengis.net/wms'>
 <Capability><Layer><Title>Root</Title>
   <Layer queryable='1'><Name>ar5_arealtype</Name><Title>AR5 arealtype</Title></Layer>
