@@ -7,6 +7,9 @@ on:
     paths:
       - 'backend/**'
       - 'deploy/ultra/**'
+      - 'scripts/init_lite_feature_store.py'
+      - 'scripts/load_feature_store_lite.py'
+      - 'scripts/ingest_live_features.py'
       - '.github/workflows/ultra-bundle.yml'
 
 jobs:
@@ -24,6 +27,9 @@ jobs:
           tar -czf dist/MykoKnoks-Ultra-bundle.tar.gz \
             backend \
             deploy/ultra \
+            scripts/init_lite_feature_store.py \
+            scripts/load_feature_store_lite.py \
+            scripts/ingest_live_features.py \
             README.md
           sha256sum dist/MykoKnoks-Ultra-bundle.tar.gz | tee dist/SHA256SUMS
 

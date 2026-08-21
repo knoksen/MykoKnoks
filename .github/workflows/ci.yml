@@ -18,6 +18,21 @@ jobs:
         working-directory: backend
       - name: Validate Ultra deployment scripts
         run: bash -n deploy/ultra/*.sh
+      - name: Validate lightweight H3 store tools
+        run: |
+          python -m py_compile scripts/init_lite_feature_store.py scripts/load_feature_store_lite.py
+          python scripts/init_lite_feature_store.py /tmp/mykoknoks-ci.sqlite
+          cat > /tmp/mykoknoks-ci.jsonl <<'EOF'
+          {"h3":"891f1d48967ffff","resolution":9,"geometry":{"type":"Polygon","coordinates":[]},"snapshot":{"elevation_m":42.0,"terrain":"test","grassland_proxy":0.8,"forest_edge_proxy":0.4,"soil_moisture_proxy":0.7,"completeness":0.9,"ar5_evidence":{"test":true}},"feature_version":"ci"}
+          EOF
+          python scripts/load_feature_store_lite.py /tmp/mykoknoks-ci.jsonl --database /tmp/mykoknoks-ci.sqlite
+          python - <<'PY'
+          import sqlite3
+          with sqlite3.connect('/tmp/mykoknoks-ci.sqlite') as conn:
+              assert conn.execute('SELECT COUNT(*) FROM env_features').fetchone()[0] == 1
+              assert conn.execute('SELECT COUNT(*) FROM env_feature_evidence').fetchone()[0] == 1
+          print('SQLite H3 store smoke test passed')
+          PY
 
   frontend:
     runs-on: ubuntu-latest

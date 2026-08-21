@@ -21,6 +21,11 @@ router = APIRouter()
 settings = get_settings()
 
 
+def feature_store_backend() -> str:
+    scheme = settings.database_url.split(":", 1)[0]
+    return scheme.split("+", 1)[0]
+
+
 @router.get("/meta")
 def meta() -> dict:
     return {
@@ -30,6 +35,7 @@ def meta() -> dict:
         "default_h3_resolution": settings.default_h3_resolution,
         "model": "explainable ecological evidence baseline; SDM training pipeline next",
         "data_modes": ["demo", "live", "store"],
+        "feature_store_backend": feature_store_backend(),
         "warning": (
             "Environmental suitability is not confirmed species presence, edibility, "
             "or species identification."
@@ -216,10 +222,11 @@ async def cells(
             }
         )
 
+    backend = feature_store_backend()
     habitat_source = {
         "demo": "deterministic synthetic demo placeholders",
         "live": "Kartverket live elevation/terrain evidence",
-        "store": "PostGIS H3 feature store with transparent fallback on cache miss",
+        "store": f"{backend} H3 feature store with transparent fallback on cache miss",
     }[data_mode]
     return {
         "type": "FeatureCollection",
@@ -232,6 +239,7 @@ async def cells(
             "data_mode": data_mode,
             "weather_source": weather_source,
             "habitat_source": habitat_source,
+            "feature_store_backend": backend if data_mode == "store" else None,
             "feature_store_hits": store_hits,
             "feature_store_total": len(requested_cells) if data_mode == "store" else None,
             "feature_store_error": store_error,
