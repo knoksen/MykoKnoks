@@ -48,6 +48,8 @@ STATE_DIR="$HOME/.local/share/$APP_NAME"
 VENV_DIR="$STATE_DIR/venv"
 ENV_FILE="$STATE_DIR/mykoknoks.env"
 DEPLOY_INFO="$STATE_DIR/deployment.env"
+LITE_STORE="$STATE_DIR/features.sqlite"
+INIT_STORE="$REPO_ROOT/scripts/init_lite_feature_store.py"
 SERVICE_DIR="$HOME/.config/systemd/user"
 SERVICE_FILE="$SERVICE_DIR/$APP_NAME.service"
 NGINX_DIR="$HOME/.apps/nginx/proxy.d"
@@ -55,6 +57,10 @@ NGINX_FILE="$NGINX_DIR/$APP_NAME.conf"
 
 if [[ ! -f "$BACKEND_DIR/pyproject.toml" ]]; then
   echo "ERROR: backend/pyproject.toml not found. Run this installer from a MykoKnoks checkout." >&2
+  exit 4
+fi
+if [[ ! -f "$INIT_STORE" ]]; then
+  echo "ERROR: scripts/init_lite_feature_store.py not found." >&2
   exit 4
 fi
 
@@ -72,15 +78,17 @@ fi
 
 "$VENV_DIR/bin/python" -m pip install --upgrade pip setuptools wheel
 "$VENV_DIR/bin/pip" install -e "$BACKEND_DIR"
+"$VENV_DIR/bin/python" "$INIT_STORE" "$LITE_STORE"
 
 cat > "$ENV_FILE" <<EOF
 APP_ENV=production
 APP_NAME=MykoKnoks
-APP_VERSION=0.2.3
+APP_VERSION=0.2.4
 API_PREFIX=/api/v1
 ROOT_PATH=${BASE_PATH}
 CORS_ORIGINS=https://appassets.androidplatform.net,https://${PUBLIC_HOST}
-MET_USER_AGENT=MykoKnoks/0.2.3 https://github.com/knoksen/MykoKnoks
+DATABASE_URL=sqlite:///${LITE_STORE}
+MET_USER_AGENT=MykoKnoks/0.2.4 https://github.com/knoksen/MykoKnoks
 MET_TIMEOUT_SECONDS=10
 UPSTREAM_TIMEOUT_SECONDS=20
 DEFAULT_H3_RESOLUTION=9
@@ -127,6 +135,7 @@ cat > "$DEPLOY_INFO" <<EOF
 MYKOKNOKS_PORT=$PORT
 MYKOKNOKS_API_BASE=https://${PUBLIC_HOST}${BASE_PATH}
 MYKOKNOKS_HEALTH=https://${PUBLIC_HOST}${BASE_PATH}/health
+MYKOKNOKS_FEATURE_STORE=${LITE_STORE}
 EOF
 chmod 600 "$DEPLOY_INFO"
 
@@ -162,6 +171,7 @@ echo "MykoKnoks Ultra deployment installed."
 echo "Port:    $PORT"
 echo "Local:   http://127.0.0.1:${PORT}/health"
 echo "Public:  ${PUBLIC_URL}"
+echo "Store:   ${LITE_STORE}"
 echo "Status:  ${PUBLIC_STATUS}"
 echo "Config:  $ENV_FILE"
 echo "Deploy:  $DEPLOY_INFO"
