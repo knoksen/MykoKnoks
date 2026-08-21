@@ -11,7 +11,8 @@
   "dependencies": {
     "maplibre-gl": "^5.7.1",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "h3-js": "^4.3.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.10",

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   fetchCells,
   fetchSources,
+  standaloneMode,
   type DataMode,
   type ForecastCollection,
   type SourceDescriptor,
@@ -55,6 +56,26 @@ export default function App() {
   function submit(e: FormEvent) {
     e.preventDefault()
     void load()
+  }
+
+  function useMyLocation() {
+    if (!navigator.geolocation) {
+      setError('Posisjon er ikke tilgjengelig på denne enheten.')
+      return
+    }
+    setLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        setLat(position.coords.latitude)
+        setLon(position.coords.longitude)
+        setLoading(false)
+      },
+      err => {
+        setError(`Kunne ikke hente posisjon: ${err.message}`)
+        setLoading(false)
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+    )
   }
 
   function changeMode(mode: DataMode) {
@@ -133,7 +154,11 @@ export default function App() {
                 onChange={e => setRadius(Number(e.target.value))}
               />
             </label>
-            <button disabled={loading}>{loading ? 'Calculating…' : 'Run forecast'}</button>
+            <div className="action-row">
+              <button type="button" className="secondary" disabled={loading} onClick={useMyLocation}>Use my position</button>
+              <button disabled={loading}>{loading ? 'Calculating…' : 'Run forecast'}</button>
+            </div>
+            {standaloneMode && <small className="standalone-note">Android standalone: Demo works locally. Live/store activates when a public HTTPS backend is configured.</small>}
           </form>
 
           {error && <div className="error">{error}</div>}
