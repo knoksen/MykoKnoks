@@ -16,6 +16,8 @@ jobs:
         working-directory: backend
       - run: ruff check app tests
         working-directory: backend
+      - name: Validate Ultra deployment scripts
+        run: bash -n deploy/ultra/*.sh
 
   frontend:
     runs-on: ubuntu-latest

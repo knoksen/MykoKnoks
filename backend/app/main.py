@@ -9,6 +9,7 @@ app = FastAPI(
     title="MykoKnoks API",
     version=settings.app_version,
     description="Nordic ecological intelligence: fungal habitat and fruiting forecast engine",
+    root_path=settings.root_path,
 )
 app.add_middleware(
     CORSMiddleware,
@@ -22,4 +23,9 @@ app.include_router(router, prefix=settings.api_prefix)
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "service": settings.app_name, "version": settings.app_version}
+    return {
+        "status": "ok",
+        "service": settings.app_name,
+        "version": settings.app_version,
+        "root_path": settings.root_path,
+    }

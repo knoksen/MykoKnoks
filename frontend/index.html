@@ -2,11 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#101b17" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/icon.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon.svg" />
     <title>MykoKnoks — Nordic Fungal Forecast</title>
+    <style>
+      #boot-fallback{position:fixed;inset:0;display:grid;place-items:center;background:#0b1210;color:#dce9e1;font-family:system-ui,sans-serif;padding:28px;z-index:99999}
+      #boot-fallback>div{max-width:520px;padding:22px;border:1px solid #294237;border-radius:18px;background:#102019}
+      #boot-fallback strong{display:block;color:#7edca4;font-size:18px;margin-bottom:8px}
+      #boot-fallback p{margin:0;color:#9eaea6;line-height:1.5;font-size:13px}
+    </style>
   </head>
-  <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
+  <body>
+    <div id="boot-fallback">
+      <div>
+        <strong>MykoKnoks is starting…</strong>
+        <p>If this message remains visible, the web bundle did not start. Send a screenshot and the app version; the native shell is running but JavaScript initialization needs attention.</p>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
