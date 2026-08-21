@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-from math import cos, radians
-
 
 from app.scoring import HabitatFeatures
 
