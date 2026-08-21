@@ -6,6 +6,7 @@
 
     <application
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:label="MykoKnoks"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
