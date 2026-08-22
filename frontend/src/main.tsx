@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './styles.css'
 import './advanced.css'
+import './temporal.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('MykoKnoks root element is missing')
