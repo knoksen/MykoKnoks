@@ -40,19 +40,46 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npm run desktop:build
 
-      - name: Verify installer
+      - name: Verify installer and write SHA-256
         shell: pwsh
         run: |
           $installer = Get-ChildItem frontend/dist-desktop/MykoKnoks-Windows-Setup-v*-x64.exe | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced' }
+          $hash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           Write-Host "Installer: $($installer.FullName)"
           Write-Host "Size: $($installer.Length) bytes"
-          Get-FileHash $installer.FullName -Algorithm SHA256
+          Write-Host "SHA256: $hash"
+          "$hash  $($installer.Name)" | Set-Content frontend/windows/SHA256SUMS.txt -Encoding ascii
+
+      - name: Build one-click package
+        shell: pwsh
+        run: |
+          $version = (Get-Content frontend/package.json | ConvertFrom-Json).version
+          $installer = Get-ChildItem frontend/dist-desktop/MykoKnoks-Windows-Setup-v*-x64.exe | Select-Object -First 1
+          $packageDir = Join-Path $env:RUNNER_TEMP 'mykoknoks-oneclick'
+          New-Item -ItemType Directory -Path $packageDir -Force | Out-Null
+          Copy-Item $installer.FullName $packageDir
+          Copy-Item frontend/windows/Install-MykoKnoks.ps1 $packageDir
+          Copy-Item frontend/windows/INSTALL-MYKOKNOKS.cmd $packageDir
+          Copy-Item frontend/windows/README.txt $packageDir
+          Copy-Item frontend/windows/SHA256SUMS.txt $packageDir
+          $zip = "frontend/dist-desktop/MykoKnoks-Windows-v$version-OneClick.zip"
+          Compress-Archive -Path (Join-Path $packageDir '*') -DestinationPath $zip -CompressionLevel Optimal -Force
+          Write-Host "One-click package: $zip"
+          Get-FileHash $zip -Algorithm SHA256
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: MykoKnoks-Windows-v0.3.0
+          name: MykoKnoks-Windows-Installer
           path: frontend/dist-desktop/MykoKnoks-Windows-Setup-v*-x64.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload one-click package
+        uses: actions/upload-artifact@v4
+        with:
+          name: MykoKnoks-Windows-OneClick
+          path: frontend/dist-desktop/MykoKnoks-Windows-v*-OneClick.zip
           if-no-files-found: error
           retention-days: 30
