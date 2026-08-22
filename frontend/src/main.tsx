@@ -18,6 +18,8 @@ document.getElementById('boot-fallback')?.remove()
 
 const isAndroidAssetHost = window.location.hostname === 'appassets.androidplatform.net'
 const isDesktopRuntime = Boolean(window.mykoDesktop?.isDesktop)
+document.documentElement.classList.toggle('desktop-runtime', isDesktopRuntime)
+
 if ('serviceWorker' in navigator && import.meta.env.PROD && !isAndroidAssetHost && !isDesktopRuntime) {
   window.addEventListener('load', () => {
     void navigator.serviceWorker.register('./sw.js')
