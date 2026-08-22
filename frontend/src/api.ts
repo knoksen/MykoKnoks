@@ -49,6 +49,12 @@ export type ApiHealth = {
   root_path?: string
 }
 
+type PortableResponse = {
+  ok: boolean
+  status: number
+  json: () => Promise<unknown>
+}
+
 const STORAGE_KEY = 'mykoknoks.apiBaseUrl'
 const BUILD_BASE = normalizeBase(import.meta.env.VITE_API_BASE_URL?.trim() || '')
 
@@ -64,6 +70,32 @@ function storedBase() {
   }
 }
 
+function headersRecord(headers?: HeadersInit): Record<string, string> {
+  if (!headers) return {}
+  if (headers instanceof Headers) return Object.fromEntries(headers.entries())
+  if (Array.isArray(headers)) return Object.fromEntries(headers)
+  return { ...headers }
+}
+
+async function portableFetch(url: string, init: RequestInit = {}): Promise<PortableResponse> {
+  if (window.mykoDesktop?.isDesktop) {
+    const result = await window.mykoDesktop.httpRequest(url, {
+      method: init.method || 'GET',
+      headers: headersRecord(init.headers),
+      body: typeof init.body === 'string' ? init.body : undefined,
+    })
+    return {
+      ok: result.ok,
+      status: result.status,
+      json: async () => {
+        if (!result.body) return null
+        return JSON.parse(result.body)
+      },
+    }
+  }
+  return fetch(url, init)
+}
+
 export function getApiBaseUrl() {
   return storedBase() || BUILD_BASE
 }
@@ -74,7 +106,7 @@ export function setApiBaseUrl(value: string) {
     if (normalized) window.localStorage.setItem(STORAGE_KEY, normalized)
     else window.localStorage.removeItem(STORAGE_KEY)
   } catch {
-    // WebView privacy/storage restrictions should never make the map unusable.
+    // Storage restrictions should never make the map unusable.
   }
   return normalized
 }
@@ -90,12 +122,20 @@ export async function checkApiHealth(candidate?: string): Promise<ApiHealth> {
   const controller = new AbortController()
   const timeout = window.setTimeout(() => controller.abort(), 12000)
   try {
-    const response = await fetch(`${base}/health`, {
+    const request = portableFetch(`${base}/health`, {
       headers: { Accept: 'application/json' },
       signal: controller.signal,
     })
+    const response = window.mykoDesktop?.isDesktop
+      ? await Promise.race([
+          request,
+          new Promise<PortableResponse>((_resolve, reject) => {
+            window.setTimeout(() => reject(new Error('API-et svarte ikke innen 12 sekunder.')), 12000)
+          }),
+        ])
+      : await request
     if (!response.ok) throw new Error(`Health check feilet med HTTP ${response.status}.`)
-    return response.json()
+    return await response.json() as ApiHealth
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new Error('API-et svarte ikke innen 12 sekunder.')
@@ -148,10 +188,10 @@ function demoCells(
         fruiting,
         combined,
         confidence: 0.30,
-        drivers: ['standalone mobile demo', 'deterministic H3 habitat proxy'],
+        drivers: ['standalone local demo', 'deterministic H3 habitat proxy'],
         synthetic_habitat: true,
         data_mode: 'demo',
-        provenance: ['MykoKnoks Android standalone engine'],
+        provenance: ['MykoKnoks local standalone engine'],
         source_warnings: ['Demo er syntetisk. Koble til HTTPS-API for live/store.'],
         elevation_m: null,
         terrain: null,
@@ -180,7 +220,6 @@ export async function fetchCells(
   dataMode: DataMode,
   resolution: number,
 ): Promise<ForecastCollection> {
-  // Demo is deliberately local. The app remains useful even when the server is down.
   if (dataMode === 'demo') return demoCells(lat, lon, radiusKm, species, resolution)
 
   const base = getApiBaseUrl()
@@ -196,12 +235,12 @@ export async function fetchCells(
     data_mode: dataMode,
     resolution: String(resolution),
   })
-  const response = await fetch(`${base}/api/v1/cells?${params}`)
+  const response = await portableFetch(`${base}/api/v1/cells?${params}`)
   if (!response.ok) {
-    const body = await response.json().catch(() => null)
+    const body = await response.json().catch(() => null) as { detail?: string } | null
     throw new Error(body?.detail || `API error ${response.status}`)
   }
-  return response.json()
+  return await response.json() as ForecastCollection
 }
 
 const OFFLINE_SOURCES: SourceDescriptor[] = [
@@ -217,7 +256,7 @@ export async function fetchSources(): Promise<SourceDescriptor[]> {
   const base = getApiBaseUrl()
   if (!base) return OFFLINE_SOURCES
 
-  const response = await fetch(`${base}/api/v1/sources`)
+  const response = await portableFetch(`${base}/api/v1/sources`)
   if (!response.ok) throw new Error(`Source API error ${response.status}`)
-  return response.json()
+  return await response.json() as SourceDescriptor[]
 }
