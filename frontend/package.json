@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "desktop:dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && cross-env MYKOKNOKS_DEV_SERVER_URL=http://127.0.0.1:5173 electron electron/main.cjs\"",
-    "desktop:build": "npm run build && electron-builder --win nsis portable --x64"
+    "desktop:build": "npm run build && electron-builder --win nsis --x64"
   },
   "dependencies": {
     "h3-js": "^4.3.0",
@@ -41,15 +41,11 @@
       "electron/**/*",
       "package.json"
     ],
-    "artifactName": "MykoKnoks-Windows-v${version}-${arch}.${ext}",
+    "artifactName": "MykoKnoks-Windows-Setup-v${version}-${arch}.${ext}",
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable",
           "arch": ["x64"]
         }
       ]
