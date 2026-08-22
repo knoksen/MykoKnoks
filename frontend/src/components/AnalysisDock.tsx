@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DataMode, ForecastCollection, ForecastFeature, ForecastProperties } from '../api'
+import { fetchTemporalForecast, type TemporalDay, type TemporalForecast } from '../temporalApi'
 import type { MapMetric } from './MapView'
 
-type DockTab = 'hotspots' | 'compare' | 'saved'
+type DockTab = 'hotspots' | 'timeline' | 'compare' | 'saved'
 
 export type SearchContext = {
   lat: number
@@ -82,11 +83,20 @@ function cellSnapshot(feature: ForecastFeature): PinnedCell {
   }
 }
 
+function displayDate(day: TemporalDay) {
+  return new Date(`${day.date}T12:00:00Z`).toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' })
+}
+
 export default function AnalysisDock({ data, selectedCell, metric, context, onSelectCell, onApplySearch }: Props) {
   const [tab, setTab] = useState<DockTab>('hotspots')
   const [pinned, setPinned] = useState<PinnedCell[]>(() => readStored<PinnedCell[]>(PIN_STORAGE, []))
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => readStored<SavedSearch[]>(SEARCH_STORAGE, []))
   const [searchName, setSearchName] = useState('')
+  const [temporal, setTemporal] = useState<TemporalForecast | null>(null)
+  const [temporalLoading, setTemporalLoading] = useState(false)
+  const [temporalError, setTemporalError] = useState('')
+  const [temporalKey, setTemporalKey] = useState('')
+  const [selectedDayDate, setSelectedDayDate] = useState('')
 
   useEffect(() => { persist(PIN_STORAGE, pinned) }, [pinned])
   useEffect(() => { persist(SEARCH_STORAGE, savedSearches) }, [savedSearches])
@@ -98,8 +108,42 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
       .slice(0, 10)
   }, [data, metric])
 
+  const currentTemporalKey = `${context.lat.toFixed(4)}:${context.lon.toFixed(4)}:${context.species}`
+  const selectedDay = temporal?.days.find(day => day.date === selectedDayDate) || temporal?.best_day || temporal?.days[0] || null
+  const temporalStale = Boolean(temporal && temporalKey !== currentTemporalKey)
+
+  const temporalAreas = useMemo(() => {
+    if (!data?.features.length || !selectedDay) return []
+    return [...data.features]
+      .map(feature => ({
+        feature,
+        score: Number(feature.properties.habitat || 0) * Number(selectedDay.peak_fruiting_score || 0),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+  }, [data, selectedDay])
+
   const currentPinId = selectedCell ? `${selectedCell.properties.species}:${selectedCell.properties.h3}` : ''
   const isPinned = Boolean(currentPinId && pinned.some(item => item.id === currentPinId))
+
+  async function refreshTemporal() {
+    setTemporalLoading(true)
+    setTemporalError('')
+    try {
+      const result = await fetchTemporalForecast(context.lat, context.lon, context.species, 10)
+      setTemporal(result)
+      setTemporalKey(currentTemporalKey)
+      setSelectedDayDate(result.best_day?.date || result.days[0]?.date || '')
+    } catch (error) {
+      setTemporalError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setTemporalLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (tab === 'timeline' && !temporal && !temporalLoading) void refreshTemporal()
+  }, [tab])
 
   function pinSelected() {
     if (!selectedCell || isPinned) return
@@ -125,10 +169,11 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
       <div className="analysis-dock-head">
         <div>
           <div className="section-kicker">ANALYSIS WORKBENCH</div>
-          <strong>Rank, compare and revisit</strong>
+          <strong>Rank, forecast, compare and revisit</strong>
         </div>
         <div className="dock-tabs" role="tablist" aria-label="Analysis tools">
           <button type="button" className={tab === 'hotspots' ? 'active' : ''} onClick={() => setTab('hotspots')}>Hotspots</button>
+          <button type="button" className={tab === 'timeline' ? 'active' : ''} onClick={() => setTab('timeline')}>Timeline <span>MET</span></button>
           <button type="button" className={tab === 'compare' ? 'active' : ''} onClick={() => setTab('compare')}>Compare <span>{pinned.length}</span></button>
           <button type="button" className={tab === 'saved' ? 'active' : ''} onClick={() => setTab('saved')}>Saved <span>{savedSearches.length}</span></button>
         </div>
@@ -156,6 +201,75 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
               )
             })}
           </div>
+        </div>
+      )}
+
+      {tab === 'timeline' && (
+        <div className="dock-panel timeline-panel">
+          <div className="timeline-head">
+            <div>
+              <strong>10-day fruiting weather window</strong>
+              <span>MET Norway forecast → explainable temperature / humidity / precipitation heuristic.</span>
+            </div>
+            <button type="button" disabled={temporalLoading} onClick={() => void refreshTemporal()}>{temporalLoading ? 'Loading…' : temporalStale ? 'Refresh changed location' : 'Refresh MET'}</button>
+          </div>
+
+          {temporalError && <div className="temporal-error">{temporalError}</div>}
+          {!temporal && temporalLoading && <div className="dock-empty">Loading MET Norway forecast timeline…</div>}
+          {!temporal && !temporalLoading && !temporalError && <div className="dock-empty">Temporal forecast requires the connected HTTPS backend.</div>}
+
+          {temporal && (
+            <>
+              {temporalStale && <div className="temporal-stale">Search location or species changed. Refresh to recalculate the timeline.</div>}
+              <div className="timeline-days">
+                {temporal.days.map(day => {
+                  const active = selectedDay?.date === day.date
+                  const best = temporal.best_day?.date === day.date
+                  return (
+                    <button type="button" key={day.date} className={`timeline-day ${active ? 'active' : ''}`} onClick={() => setSelectedDayDate(day.date)}>
+                      <span>{displayDate(day)}</span>
+                      <strong>{pct(day.peak_fruiting_score)}</strong>
+                      <i><b style={{ height: `${Math.max(4, day.peak_fruiting_score * 100)}%` }} /></i>
+                      <small>{day.temperature_mean_c.toFixed(1)}° · {Math.round(day.humidity_mean_pct)}% RH · {day.precipitation_total_mm.toFixed(1)} mm</small>
+                      {best && <em>BEST DAY</em>}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {selectedDay && (
+                <div className="temporal-detail-grid">
+                  <div className="temporal-day-detail">
+                    <div className="section-kicker">SELECTED DAY</div>
+                    <strong>{displayDate(selectedDay)} · peak {pct(selectedDay.peak_fruiting_score)}</strong>
+                    <div className="temporal-metrics">
+                      <span><b>{selectedDay.temperature_mean_c.toFixed(1)}°C</b> mean temp</span>
+                      <span><b>{Math.round(selectedDay.humidity_mean_pct)}%</b> humidity</span>
+                      <span><b>{selectedDay.precipitation_total_mm.toFixed(1)} mm</b> precipitation</span>
+                      <span><b>{new Date(selectedDay.best_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</b> peak time</span>
+                    </div>
+                    <div className="tag-cloud">{selectedDay.drivers.map(driver => <span key={driver}>{driver}</span>)}</div>
+                  </div>
+
+                  <div className="temporal-area-rank">
+                    <div className="section-kicker">BEST AREA · SELECTED DAY</div>
+                    {temporalAreas.length === 0 ? (
+                      <span className="temporal-note">Run a spatial forecast to combine this day's fruiting window with H3 habitat.</span>
+                    ) : temporalAreas.map((item, index) => (
+                      <button type="button" key={item.feature.properties.h3} onClick={() => onSelectCell(item.feature)}>
+                        <span>{index + 1}</span>
+                        <code>{item.feature.properties.h3}</code>
+                        <strong>{pct(item.score)}</strong>
+                        <small>{item.feature.properties.synthetic_habitat ? 'demo habitat' : 'evidence habitat'}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="temporal-warning"><strong>Model boundary</strong><span>{temporal.warning}</span></div>
+            </>
+          )}
         </div>
       )}
 
