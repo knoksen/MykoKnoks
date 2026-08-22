@@ -1,0 +1,56 @@
+name: Windows Desktop
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/windows-desktop.yml'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/windows-desktop.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build Windows installer
+        working-directory: frontend
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run desktop:build
+
+      - name: Verify installer
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem frontend/dist-desktop/MykoKnoks-Windows-Setup-v*-x64.exe | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not produced' }
+          Write-Host "Installer: $($installer.FullName)"
+          Write-Host "Size: $($installer.Length) bytes"
+          Get-FileHash $installer.FullName -Algorithm SHA256
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MykoKnoks-Windows-v0.3.0
+          path: frontend/dist-desktop/MykoKnoks-Windows-Setup-v*-x64.exe
+          if-no-files-found: error
+          retention-days: 30
