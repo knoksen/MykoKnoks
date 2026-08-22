@@ -11,11 +11,13 @@ import {
 } from './api'
 import MapView from './components/MapView'
 
+const APP_VERSION = '0.3.0'
 const DEFAULT_LAT = 58.735
 const DEFAULT_LON = 5.647
 const ULTRA_API_CANDIDATE = 'https://knoksen.nova.usbx.me/mykoknoks-api'
 
 export default function App() {
+  const isDesktop = Boolean(window.mykoDesktop?.isDesktop)
   const [lat, setLat] = useState(DEFAULT_LAT)
   const [lon, setLon] = useState(DEFAULT_LON)
   const [radius, setRadius] = useState(3)
@@ -30,6 +32,7 @@ export default function App() {
   const [apiConnected, setApiConnected] = useState(false)
   const [apiChecking, setApiChecking] = useState(false)
   const [apiStatus, setApiStatus] = useState('Offline demo · no server required')
+  const [desktopStatus, setDesktopStatus] = useState(isDesktop ? 'Windows desktop shell ready' : '')
 
   const stats = useMemo(() => {
     if (!data?.features.length) return null
@@ -66,23 +69,33 @@ export default function App() {
   useEffect(() => {
     void load()
 
+    if (isDesktop && window.mykoDesktop) {
+      void window.mykoDesktop.getRuntimeInfo()
+        .then(info => setDesktopStatus(`Windows ${info.arch} · Electron ${info.electron} · app ${info.version}`))
+        .catch(() => setDesktopStatus('Windows desktop shell ready'))
+    }
+
     const saved = getApiBaseUrl()
-    if (!saved) {
+    const candidate = saved || (isDesktop ? ULTRA_API_CANDIDATE : '')
+    if (!candidate) {
       void loadSources()
       return
     }
 
     setApiChecking(true)
-    void checkApiHealth(saved)
+    setApiStatus(saved ? 'Checking saved HTTPS API…' : 'Auto-connecting desktop HTTPS API…')
+    void checkApiHealth(candidate)
       .then(health => {
+        const normalized = setApiBaseUrl(candidate)
+        setApiUrl(normalized)
         setApiConnected(true)
         setApiStatus(`Connected · ${health.service || 'MykoKnoks'} ${health.version || ''}`.trim())
         return loadSources()
       })
       .catch(() => {
-        setApiBaseUrl('')
+        if (saved) setApiBaseUrl('')
         setApiConnected(false)
-        setApiStatus('Saved server unavailable · running offline demo')
+        setApiStatus(isDesktop ? 'Desktop API unavailable · local demo ready' : 'Saved server unavailable · running offline demo')
         return loadSources()
       })
       .finally(() => setApiChecking(false))
@@ -155,6 +168,26 @@ export default function App() {
     }
   }
 
+  async function exportPdf() {
+    if (!window.mykoDesktop) return
+    try {
+      const result = await window.mykoDesktop.savePdf()
+      if (result.ok) setDesktopStatus(`PDF saved · ${result.path || 'completed'}`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  async function exportScreenshot() {
+    if (!window.mykoDesktop) return
+    try {
+      const result = await window.mykoDesktop.saveScreenshot()
+      if (result.ok) setDesktopStatus(`Screenshot saved · ${result.path || 'completed'}`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
   return (
     <main>
       <header className="hero">
@@ -164,9 +197,22 @@ export default function App() {
           <p className="lead">Observed nature + terrain + weather → auditable habitat intelligence.</p>
         </div>
         <div className={`badge ${apiConnected ? 'online' : ''}`}>
-          v0.2.4 · {apiConnected ? 'LIVE API CONNECTED' : 'OFFLINE READY'}
+          v{APP_VERSION} · {isDesktop ? 'WINDOWS DESKTOP · ' : ''}{apiConnected ? 'LIVE API CONNECTED' : 'OFFLINE READY'}
         </div>
       </header>
+
+      {isDesktop && (
+        <section className="desktop-toolbar">
+          <div>
+            <div className="section-label compact">DESKTOP WORKSPACE</div>
+            <strong>{desktopStatus}</strong>
+          </div>
+          <div className="desktop-actions">
+            <button type="button" className="secondary" onClick={() => void exportScreenshot()}>Save screenshot</button>
+            <button type="button" onClick={() => void exportPdf()}>Export PDF</button>
+          </div>
+        </section>
+      )}
 
       <section className="layout">
         <aside className="panel">
@@ -249,7 +295,7 @@ export default function App() {
               <button disabled={loading}>{loading ? 'Calculating…' : 'Run forecast'}</button>
             </div>
             <small className="standalone-note">
-              Demo always runs on-device. Live/store are unlocked only after a successful HTTPS health check.
+              Demo always runs locally. Live/store are unlocked only after a successful HTTPS health check.
             </small>
           </form>
 
@@ -268,7 +314,7 @@ export default function App() {
             <strong>{dataMode === 'demo' ? 'Demo mode' : dataMode === 'live' ? 'Live mode' : 'Feature-store mode'}</strong>
             <p>
               {dataMode === 'demo'
-                ? 'Deterministic synthetic habitat generated locally on the phone; useful for UI and pipeline testing.'
+                ? 'Deterministic synthetic habitat generated locally on this device; useful for UI and pipeline testing.'
                 : dataMode === 'live'
                   ? 'Queries real Kartverket terrain/elevation per H3 cell with a strict request cap.'
                   : 'Serves pre-ingested H3 environmental features from the configured feature store. Ultra uses SQLite; PostgreSQL remains supported.'}
