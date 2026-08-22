@@ -30,6 +30,10 @@ jobs:
         working-directory: frontend
         run: npm install
 
+      - name: Audit production dependencies
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Build Windows installer
         working-directory: frontend
         env:
