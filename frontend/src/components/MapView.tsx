@@ -10,6 +10,9 @@ type Props = {
   center: [number, number]
   metric: MapMetric
   selectedH3?: string | null
+  minScore?: number
+  fillOpacity?: number
+  showOutlines?: boolean
   onSelect?: (feature: ForecastFeature | null) => void
 }
 
@@ -29,7 +32,25 @@ function metricExpression(metric: MapMetric) {
   ] as any
 }
 
-export default function MapView({ data, center, metric, selectedH3, onSelect }: Props) {
+function scoreFilter(metric: MapMetric, minScore: number) {
+  return ['>=', ['coalesce', ['get', metric], 0], Math.max(0, Math.min(1, minScore))] as any
+}
+
+function opacityExpression(fillOpacity: number) {
+  const opacity = Math.max(0.08, Math.min(1, fillOpacity))
+  return ['case', ['get', 'synthetic_habitat'], opacity * 0.68, opacity] as any
+}
+
+export default function MapView({
+  data,
+  center,
+  metric,
+  selectedH3,
+  minScore = 0,
+  fillOpacity = 0.76,
+  showOutlines = true,
+  onSelect,
+}: Props) {
   const container = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<Map | null>(null)
   const dataRef = useRef<ForecastCollection | null>(data)
@@ -64,10 +85,11 @@ export default function MapView({ data, center, metric, selectedH3, onSelect }: 
         id: FILL_LAYER,
         type: 'fill',
         source: SOURCE,
+        filter: scoreFilter(metric, minScore),
         paint: {
           'fill-color': metricExpression(metric),
-          'fill-opacity': ['case', ['get', 'synthetic_habitat'], 0.50, 0.76],
-          'fill-outline-color': 'rgba(222,255,235,.34)',
+          'fill-opacity': opacityExpression(fillOpacity),
+          'fill-outline-color': showOutlines ? 'rgba(222,255,235,.34)' : 'rgba(0,0,0,0)',
         },
       })
 
@@ -120,11 +142,25 @@ export default function MapView({ data, center, metric, selectedH3, onSelect }: 
     const map = mapRef.current
     if (!map) return
     const update = () => {
-      if (map.getLayer(FILL_LAYER)) map.setPaintProperty(FILL_LAYER, 'fill-color', metricExpression(metric))
+      if (!map.getLayer(FILL_LAYER)) return
+      map.setPaintProperty(FILL_LAYER, 'fill-color', metricExpression(metric))
+      map.setFilter(FILL_LAYER, scoreFilter(metric, minScore))
     }
     if (map.isStyleLoaded()) update()
     else map.once('load', update)
-  }, [metric])
+  }, [metric, minScore])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const update = () => {
+      if (!map.getLayer(FILL_LAYER)) return
+      map.setPaintProperty(FILL_LAYER, 'fill-opacity', opacityExpression(fillOpacity))
+      map.setPaintProperty(FILL_LAYER, 'fill-outline-color', showOutlines ? 'rgba(222,255,235,.34)' : 'rgba(0,0,0,0)')
+    }
+    if (map.isStyleLoaded()) update()
+    else map.once('load', update)
+  }, [fillOpacity, showOutlines])
 
   useEffect(() => {
     const map = mapRef.current
