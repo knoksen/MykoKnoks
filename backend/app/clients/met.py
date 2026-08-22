@@ -12,14 +12,16 @@ class MetNorwayClient:
         self.user_agent = user_agent
         self.timeout_seconds = timeout_seconds
 
-    async def forecast(self, lat: float, lon: float) -> WeatherSnapshot:
+    async def raw_forecast(self, lat: float, lon: float) -> dict:
         params = {"lat": round(lat, 4), "lon": round(lon, 4)}
         headers = {"User-Agent": self.user_agent}
         async with httpx.AsyncClient(timeout=self.timeout_seconds, headers=headers) as client:
             response = await client.get(self.BASE_URL, params=params)
             response.raise_for_status()
-            payload = response.json()
+            return response.json()
 
+    async def forecast(self, lat: float, lon: float) -> WeatherSnapshot:
+        payload = await self.raw_forecast(lat, lon)
         series = payload["properties"]["timeseries"][0]
         instant = series["data"]["instant"]["details"]
         next_1h = series["data"].get("next_1_hours", {}).get("details", {})
