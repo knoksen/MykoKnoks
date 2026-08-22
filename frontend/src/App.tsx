@@ -10,9 +10,10 @@ import {
   type ForecastFeature,
   type SourceDescriptor,
 } from './api'
+import AnalysisDock, { type SavedSearch } from './components/AnalysisDock'
 import MapView, { type MapMetric } from './components/MapView'
 
-const DESKTOP_VERSION = '0.4.0'
+const DESKTOP_VERSION = '0.5.0'
 const MOBILE_VERSION = '0.2.4'
 const DEFAULT_LAT = 58.735
 const DEFAULT_LON = 5.647
@@ -69,6 +70,9 @@ export default function App() {
   const [species, setSpecies] = useState('Psilocybe semilanceata')
   const [dataMode, setDataMode] = useState<DataMode>('demo')
   const [metric, setMetric] = useState<MapMetric>('combined')
+  const [minScore, setMinScore] = useState(0)
+  const [fillOpacity, setFillOpacity] = useState(0.76)
+  const [showOutlines, setShowOutlines] = useState(true)
   const [data, setData] = useState<ForecastCollection | null>(null)
   const [sources, setSources] = useState<SourceDescriptor[]>([])
   const [selectedCell, setSelectedCell] = useState<ForecastFeature | null>(null)
@@ -98,6 +102,11 @@ export default function App() {
       confidence: confidence.reduce((a, b) => a + b, 0) / confidence.length,
     }
   }, [data])
+
+  const visibleCount = useMemo(() => {
+    if (!data?.features.length) return 0
+    return data.features.filter(feature => Number(feature.properties[metric] || 0) >= minScore).length
+  }, [data, metric, minScore])
 
   async function load() {
     setLoading(true)
@@ -159,6 +168,21 @@ export default function App() {
       })
       .finally(() => setApiChecking(false))
   }, [])
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedCell(null)
+        return
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault()
+        if (!loading) void load()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [lat, lon, radius, resolution, species, dataMode, loading])
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -234,6 +258,23 @@ export default function App() {
     if (feature) setInspectorTab('cell')
   }
 
+  function applySavedSearch(saved: SavedSearch) {
+    setLat(saved.lat)
+    setLon(saved.lon)
+    setRadius(saved.dataMode === 'live' ? Math.min(saved.radius, 1.2) : saved.radius)
+    setResolution(saved.dataMode === 'live' ? 9 : saved.resolution)
+    setSpecies(saved.species)
+    setSelectedCell(null)
+    if (saved.dataMode !== 'demo' && !apiConnected) {
+      setDataMode('demo')
+      setShowConnection(true)
+      setError('Saved workspace loaded. Its server-backed mode needs an active API connection, so Demo remains selected for now.')
+    } else {
+      setDataMode(saved.dataMode)
+      setError('')
+    }
+  }
+
   async function exportPdf() {
     if (!window.mykoDesktop) return
     try {
@@ -277,6 +318,7 @@ export default function App() {
         </div>
 
         <div className="topbar-actions">
+          <span className="shortcut-hint" title="Run forecast">Ctrl+Enter</span>
           {isDesktop && <button type="button" className="icon-action" title="Save map screenshot" onClick={() => void exportScreenshot()}>Capture</button>}
           {isDesktop && <button type="button" className="icon-action primary" title="Export report as PDF" onClick={() => void exportPdf()}>Export PDF</button>}
         </div>
@@ -398,7 +440,7 @@ export default function App() {
 
         <section className="map-stage glass-panel">
           <div className="map-toolbar">
-            <div>
+            <div className="metric-area">
               <div className="section-kicker">MAP LAYER</div>
               <div className="metric-switch">
                 {METRICS.map(item => (
@@ -406,9 +448,22 @@ export default function App() {
                 ))}
               </div>
             </div>
+            <div className="map-layer-controls">
+              <label title="Hide cells below this score">
+                <span>Threshold</span>
+                <input type="range" min="0" max="0.9" step="0.05" value={minScore} onChange={event => setMinScore(Number(event.target.value))} />
+                <strong>{pct(minScore)}</strong>
+              </label>
+              <label title="H3 layer opacity">
+                <span>Opacity</span>
+                <input type="range" min="0.2" max="1" step="0.05" value={fillOpacity} onChange={event => setFillOpacity(Number(event.target.value))} />
+                <strong>{Math.round(fillOpacity * 100)}%</strong>
+              </label>
+              <button type="button" className={`outline-toggle ${showOutlines ? 'active' : ''}`} onClick={() => setShowOutlines(value => !value)}>Cell lines</button>
+            </div>
             <div className="map-run-state">
               <span className={loading ? 'pulse' : ''} />
-              <div><strong>{loading ? 'Computing' : `${stats?.cells ?? 0} cells rendered`}</strong><small>{species}</small></div>
+              <div><strong>{loading ? 'Computing' : `${visibleCount}/${stats?.cells ?? 0} cells visible`}</strong><small>{species}</small></div>
             </div>
           </div>
 
@@ -418,14 +473,17 @@ export default function App() {
               center={[lon, lat]}
               metric={metric}
               selectedH3={selected?.h3 || null}
+              minScore={minScore}
+              fillOpacity={fillOpacity}
+              showOutlines={showOutlines}
               onSelect={selectCell}
             />
             <div className="legend-card">
               <div><span>LOW</span><span>HIGH</span></div>
               <i className="legend-gradient" />
-              <small>{METRICS.find(item => item.id === metric)?.label} score · 0–100%</small>
+              <small>{METRICS.find(item => item.id === metric)?.label} score · threshold {pct(minScore)}</small>
             </div>
-            <div className="map-hint">Click an H3 cell to inspect evidence</div>
+            <div className="map-hint">Click a visible H3 cell to inspect · Esc clears selection</div>
           </div>
         </section>
 
@@ -531,9 +589,18 @@ export default function App() {
         </aside>
       </section>
 
+      <AnalysisDock
+        data={data}
+        selectedCell={selectedCell}
+        metric={metric}
+        context={{ lat, lon, radius, resolution, species, dataMode }}
+        onSelectCell={selectCell}
+        onApplySearch={applySavedSearch}
+      />
+
       <footer className="statusbar">
         <div><i className={apiConnected ? 'online' : ''} /><span>{apiConnected ? 'Secure HTTPS backend connected' : 'Offline-capable local runtime'}</span></div>
-        <div><span>{desktopStatus || `MykoKnoks ${appVersion}`}</span><span>•</span><span>{dataMode.toUpperCase()}</span><span>•</span><span>{metric.toUpperCase()}</span></div>
+        <div><span>{desktopStatus || `MykoKnoks ${appVersion}`}</span><span>•</span><span>{dataMode.toUpperCase()}</span><span>•</span><span>{metric.toUpperCase()}</span><span>•</span><span>{visibleCount} visible</span></div>
       </footer>
     </main>
   )
