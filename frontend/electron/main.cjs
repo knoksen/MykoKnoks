@@ -5,6 +5,7 @@ const path = require('node:path')
 const APP_NAME = 'MykoKnoks'
 const DEFAULT_WIDTH = 1500
 const DEFAULT_HEIGHT = 980
+const HTTP_TIMEOUT_MS = 20000
 let mainWindow = null
 
 function statePath() {
@@ -56,6 +57,39 @@ async function saveScreenshot(win) {
   const image = await win.webContents.capturePage()
   await fs.promises.writeFile(target.filePath, image.toPNG())
   return { ok: true, path: target.filePath }
+}
+
+async function desktopHttpRequest(url, options = {}) {
+  let parsed
+  try {
+    parsed = new URL(url)
+  } catch {
+    throw new Error('Invalid API URL')
+  }
+  if (!['https:', 'http:'].includes(parsed.protocol)) throw new Error('Only HTTP(S) API requests are allowed')
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), HTTP_TIMEOUT_MS)
+  try {
+    const response = await fetch(parsed.toString(), {
+      method: options.method || 'GET',
+      headers: options.headers || {},
+      body: typeof options.body === 'string' ? options.body : undefined,
+      signal: controller.signal,
+    })
+    return {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+      body: await response.text(),
+      contentType: response.headers.get('content-type') || '',
+    }
+  } catch (error) {
+    if (error && error.name === 'AbortError') throw new Error(`API request timed out after ${HTTP_TIMEOUT_MS / 1000}s`)
+    throw error
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 function buildMenu(win) {
@@ -180,6 +214,7 @@ if (!gotLock) {
     }))
     ipcMain.handle('desktop:save-pdf', () => savePdf(mainWindow))
     ipcMain.handle('desktop:save-screenshot', () => saveScreenshot(mainWindow))
+    ipcMain.handle('desktop:http-request', (_event, url, options) => desktopHttpRequest(url, options))
     ipcMain.handle('desktop:open-external', (_event, url) => {
       if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return false
       void shell.openExternal(url)
