@@ -1,0 +1,8 @@
+/* Desktop release badge follows the Electron package version. */
+.desktop-runtime .brand-line > span {
+  font-size: 0;
+}
+.desktop-runtime .brand-line > span::after {
+  content: 'v0.6.0';
+  font-size: 10px;
+}
