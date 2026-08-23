@@ -11,6 +11,7 @@ from app.clients.ogc import FeatureInfoResult, WmsClient
 from app.config import Settings
 from app.schemas import EnvironmentalSnapshot
 from app.scoring import HabitatFeatures
+from app.services.gis_features import normalize_gis_evidence
 
 
 @dataclass(frozen=True)
@@ -45,31 +46,31 @@ def proxies_from_evidence(
     sr16: dict | str | None,
     losmasse: dict | str | None,
 ) -> tuple[float, float, float, list[str]]:
+    vector = normalize_gis_evidence(ar5, sr16, losmasse)
     text_land = " ".join(filter(None, [(terrain or "").casefold(), _evidence_text(ar5)]))
-    text_forest = _evidence_text(sr16)
-    text_soil = _evidence_text(losmasse)
     drivers: list[str] = []
 
-    grassland = 0.5
-    if any(term in text_land for term in ("dyrka", "beite", "grass", "jordbruk", "åpen fastmark")):
-        grassland = 0.9
-        drivers.append("real land-cover evidence supports open/grassland habitat")
-    elif any(term in text_land for term in ("skog", "urban", "bebyg", "vatn", "vann")):
-        grassland = 0.2
+    grassland = vector.open_land_score
+    if grassland > 0.8:
+        drivers.append("real AR5 evidence supports open/grassland habitat")
 
     forest_edge = 0.5
-    if text_forest:
+    if sr16 is not None:
         forest_edge = 0.62
         drivers.append("SR16 forest evidence available")
     if any(term in text_land for term in ("skog", "forest")):
         forest_edge = max(forest_edge, 0.68)
 
-    soil_moisture = 0.5
-    if any(term in text_soil for term in ("torv", "myr", "peat", "flom", "elve", "marine", "havavset")):
-        soil_moisture = 0.78
-        drivers.append("geological evidence suggests moisture-retaining substrate")
-    elif any(term in text_soil for term in ("bart fjell", "berg", "block", "ur")):
-        soil_moisture = 0.25
+    soil_moisture = vector.substrate_moisture_score
+    if soil_moisture > 0.7:
+        drivers.append("NGU substrate evidence suggests moisture retention")
+    elif soil_moisture < 0.3:
+        drivers.append("NGU substrate evidence suggests low moisture retention")
+
+    if vector.wetland_score > 0.85:
+        drivers.append("AR5 evidence indicates mire/wetland context")
+    if vector.forest_score > 0.8:
+        drivers.append("AR5 evidence indicates forest-dominated land cover")
 
     return grassland, forest_edge, soil_moisture, drivers
 
@@ -130,6 +131,7 @@ class LiveNorwayFeatureService:
                 else:
                     losmasse_payload = result.payload
 
+        normalized = normalize_gis_evidence(ar5_payload, sr16_payload, losmasse_payload)
         grassland, forest_edge, soil_moisture, proxy_drivers = proxies_from_evidence(
             terrain,
             ar5_payload,
@@ -153,6 +155,7 @@ class LiveNorwayFeatureService:
             grassland_proxy=grassland,
             forest_edge_proxy=forest_edge,
             soil_moisture_proxy=soil_moisture,
+            normalized_gis=normalized.as_dict(),
             completeness=completeness,
             provenance=provenance,
             warnings=warnings,
