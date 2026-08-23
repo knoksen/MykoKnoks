@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from typing import Any
 
-
 HABITAT_FEATURE_COLUMNS = (
     "open_land_score",
     "wetland_score",
