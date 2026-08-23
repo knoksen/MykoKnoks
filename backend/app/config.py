@@ -6,13 +6,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_env: str = "development"
     app_name: str = "MykoKnoks"
-    app_version: str = "0.6.0"
+    app_version: str = "0.9.0"
     api_prefix: str = "/api/v1"
     root_path: str = ""
     cors_origins: str = "http://localhost:5173"
     database_url: str = "postgresql+psycopg://mykoknoks:mykoknoks@localhost:5432/mykoknoks"
 
-    met_user_agent: str = "MykoKnoks/0.6.0 https://github.com/knoksen/MykoKnoks"
+    met_user_agent: str = "MykoKnoks/0.9.0 https://github.com/knoksen/MykoKnoks"
     met_timeout_seconds: float = 10.0
     upstream_timeout_seconds: float = 20.0
 

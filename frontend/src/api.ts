@@ -2,6 +2,35 @@ import { cellToBoundary, getHexagonEdgeLengthAvg, gridDisk, latLngToCell } from 
 
 export type DataMode = 'demo' | 'live' | 'store'
 
+export type GISFeatures = {
+  ar5_code?: number | null
+  ar5_class?: string | null
+  open_land_score?: number
+  wetland_score?: number
+  forest_score?: number
+  dominant_tree?: string | null
+  forest_height_m?: number | null
+  forest_height_raw?: number | null
+  loose_sediment_class?: string | null
+  substrate_moisture_score?: number
+  slope_deg?: number | null
+  terrain_roughness_m?: number | null
+  coverage?: number
+  evidence_sources?: string[]
+}
+
+export type ScoreComponents = {
+  profile?: string
+  legacy_habitat?: number
+  gis_coverage?: number
+  open_land?: number | null
+  substrate_moisture?: number | null
+  forest_context?: number | null
+  forest_edge?: number | null
+  elevation?: number | null
+  [key: string]: string | number | null | undefined
+}
+
 export type ForecastProperties = {
   h3: string
   species: string
@@ -10,6 +39,9 @@ export type ForecastProperties = {
   combined: number
   confidence: number
   drivers: string[]
+  score_components?: ScoreComponents
+  model_profile?: string
+  gis_features?: GISFeatures
   synthetic_habitat: boolean
   data_mode: DataMode
   provenance: string[]
@@ -189,6 +221,9 @@ function demoCells(
         combined,
         confidence: 0.30,
         drivers: ['standalone local demo', 'deterministic H3 habitat proxy'],
+        model_profile: 'synthetic-demo',
+        score_components: { profile: 'synthetic-demo', gis_coverage: 0 },
+        gis_features: { coverage: 0, evidence_sources: [] },
         synthetic_habitat: true,
         data_mode: 'demo',
         provenance: ['MykoKnoks local standalone engine'],
@@ -234,8 +269,9 @@ export async function fetchCells(
     species,
     data_mode: dataMode,
     resolution: String(resolution),
+    include_occurrences: 'true',
   })
-  const response = await portableFetch(`${base}/api/v1/cells?${params}`)
+  const response = await portableFetch(`${base}/api/v1/prediction/cells?${params}`)
   if (!response.ok) {
     const body = await response.json().catch(() => null) as { detail?: string } | null
     throw new Error(body?.detail || `API error ${response.status}`)

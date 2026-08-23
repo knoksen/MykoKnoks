@@ -13,8 +13,8 @@ UPSERT_FEATURE = """
 INSERT INTO env_features (
     h3, h3_resolution, geometry_json, elevation_m, terrain,
     grassland_proxy, forest_edge_proxy, soil_moisture_proxy,
-    completeness, feature_version, updated_at
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    gis_features_json, completeness, feature_version, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 ON CONFLICT(h3) DO UPDATE SET
     h3_resolution = excluded.h3_resolution,
     geometry_json = excluded.geometry_json,
@@ -23,6 +23,7 @@ ON CONFLICT(h3) DO UPDATE SET
     grassland_proxy = excluded.grassland_proxy,
     forest_edge_proxy = excluded.forest_edge_proxy,
     soil_moisture_proxy = excluded.soil_moisture_proxy,
+    gis_features_json = excluded.gis_features_json,
     completeness = excluded.completeness,
     feature_version = excluded.feature_version,
     updated_at = CURRENT_TIMESTAMP
@@ -77,8 +78,9 @@ def load(jsonl: Path, database: Path) -> int:
                     snap.get("grassland_proxy", 0.5),
                     snap.get("forest_edge_proxy", 0.5),
                     snap.get("soil_moisture_proxy", 0.5),
+                    json.dumps(snap.get("normalized_gis") or {}, ensure_ascii=False),
                     snap.get("completeness", 0.0),
-                    row.get("feature_version", "norway-live-v0.2"),
+                    row.get("feature_version", "prediction-gis-v0.9"),
                 ),
             )
             evidence = evidence_rows(row)

@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -45,6 +47,7 @@ class EnvironmentalSnapshot(BaseModel):
     grassland_proxy: float = Field(ge=0, le=1)
     forest_edge_proxy: float = Field(ge=0, le=1)
     soil_moisture_proxy: float = Field(ge=0, le=1)
+    normalized_gis: dict[str, Any] = Field(default_factory=dict)
     completeness: float = Field(ge=0, le=1)
     provenance: list[str]
     warnings: list[str] = Field(default_factory=list)
