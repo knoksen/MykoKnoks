@@ -107,8 +107,6 @@ def _ar5_features(payload: dict | str | None) -> tuple[int | None, str | None, f
     open_land = 0.5
     wetland = 0.5
     forest = 0.5
-
-    # AR5 main area-type codes. Text labels remain the preferred signal when supplied.
     if code in {21, 22, 23}:
         open_land, wetland, forest = 0.95, 0.2, 0.05
     elif code == 30:
@@ -217,49 +215,66 @@ def prediction_habitat_score(
     from app.scoring import habitat_score
 
     legacy_score, legacy_drivers = habitat_score(habitat)
-    if isinstance(gis, NormalizedGISVector):
-        vector = gis.as_dict()
-    else:
-        vector = gis or {}
-
+    vector = gis.as_dict() if isinstance(gis, NormalizedGISVector) else gis or {}
     coverage = clamp01(float(vector.get("coverage") or 0.0))
     species_key = species.strip().casefold()
     elevation_penalty = exp(-max(0.0, habitat.elevation_m - 550.0) / 500.0)
 
     if species_key != "psilocybe semilanceata" or coverage <= 0:
         return legacy_score, {
-            "profile": "generic-legacy-v0.9",
+            "profile": "generic-legacy-v1",
             "legacy_habitat": round(legacy_score, 4),
             "gis_coverage": round(coverage, 4),
             "open_land": None,
             "substrate_moisture": None,
             "forest_edge": round(clamp01(habitat.forest_edge), 4),
             "elevation": round(clamp01(elevation_penalty), 4),
-        }, legacy_drivers + (["GIS evidence retained as context; no taxon-specific v0.9 profile"] if coverage > 0 else [])
+            "terrain_slope": None,
+            "terrain_smoothness": None,
+        }, legacy_drivers + (
+            ["GIS evidence retained as context; no taxon-specific v1 profile"]
+            if coverage > 0
+            else []
+        )
 
     open_land = clamp01(float(vector.get("open_land_score", habitat.grassland)))
     moisture = clamp01(float(vector.get("substrate_moisture_score", habitat.soil_moisture_proxy)))
     forest = clamp01(float(vector.get("forest_score", 0.5)))
     edge = clamp01(habitat.forest_edge)
 
+    slope_raw = vector.get("slope_deg")
+    slope_score = 0.5 if slope_raw is None else exp(-max(0.0, float(slope_raw) - 6.0) / 18.0)
+    roughness_raw = vector.get("terrain_roughness_m")
+    smoothness_score = (
+        0.5
+        if roughness_raw is None
+        else exp(-max(0.0, float(roughness_raw) - 1.5) / 5.0)
+    )
+
     score = clamp01(
-        0.46 * open_land
-        + 0.24 * moisture
-        + 0.12 * edge
-        + 0.10 * clamp01(elevation_penalty)
+        0.40 * open_land
+        + 0.22 * moisture
+        + 0.10 * edge
+        + 0.08 * clamp01(elevation_penalty)
         + 0.08 * (1.0 - forest)
+        + 0.07 * clamp01(slope_score)
+        + 0.05 * clamp01(smoothness_score)
     )
     drivers = list(legacy_drivers)
-    drivers.append("v0.9 semilanceata GIS heuristic profile")
+    drivers.append("v1 semilanceata ecological GIS heuristic")
     if open_land >= 0.75:
         drivers.append("AR5/open-land evidence supports grassland habitat")
     if moisture >= 0.7:
         drivers.append("NGU substrate evidence supports moisture retention")
     if forest >= 0.75:
         drivers.append("strong forest signal reduces open-grassland suitability")
+    if slope_raw is not None and float(slope_raw) <= 8.0:
+        drivers.append("terrain gradient indicates relatively gentle ground")
+    if roughness_raw is not None and float(roughness_raw) <= 2.5:
+        drivers.append("local elevation stencil indicates smooth terrain")
 
     return score, {
-        "profile": "semilanceata-gis-heuristic-v0.9",
+        "profile": "semilanceata-gis-heuristic-v1",
         "legacy_habitat": round(legacy_score, 4),
         "gis_coverage": round(coverage, 4),
         "open_land": round(open_land, 4),
@@ -267,4 +282,6 @@ def prediction_habitat_score(
         "forest_context": round(forest, 4),
         "forest_edge": round(edge, 4),
         "elevation": round(clamp01(elevation_penalty), 4),
+        "terrain_slope": round(clamp01(slope_score), 4),
+        "terrain_smoothness": round(clamp01(smoothness_score), 4),
     }, drivers
