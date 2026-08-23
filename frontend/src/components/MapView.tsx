@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import maplibregl, { Map } from 'maplibre-gl'
+import maplibregl, { Map as MapLibreMap } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { ForecastCollection, ForecastFeature } from '../api'
 import {
@@ -187,7 +187,7 @@ function extendCoordinates(bounds: maplibregl.LngLatBounds, coordinates: unknown
   for (const child of coordinates) extendCoordinates(bounds, child)
 }
 
-function fitToCollection(map: Map, data: ForecastCollection | null) {
+function fitToCollection(map: MapLibreMap, data: ForecastCollection | null) {
   if (!data?.features.length) return
   const bounds = new maplibregl.LngLatBounds()
   for (const feature of data.features) {
@@ -229,7 +229,7 @@ export default function MapView({
   onSelect,
 }: Props) {
   const container = useRef<HTMLDivElement | null>(null)
-  const mapRef = useRef<Map | null>(null)
+  const mapRef = useRef<MapLibreMap | null>(null)
   const dataRef = useRef<ForecastCollection | null>(data)
   const selectRef = useRef(onSelect)
   const metricRef = useRef(metric)
@@ -276,7 +276,7 @@ export default function MapView({
     return [...groups.entries()]
   }, [])
 
-  function syncRasterOverlays(map: Map) {
+  function syncRasterOverlays(map: MapLibreMap) {
     for (const definition of GIS_LAYERS) {
       const sourceId = overlaySourceId(definition.id)
       const layerId = overlayLayerId(definition.id)
@@ -320,7 +320,7 @@ export default function MapView({
     }
   }
 
-  function installAnalysisLayers(map: Map) {
+  function installAnalysisLayers(map: MapLibreMap) {
     syncRasterOverlays(map)
 
     if (!map.getSource(SOURCE)) {
@@ -409,7 +409,7 @@ export default function MapView({
     }
   }
 
-  async function inspectAt(map: Map, event: maplibregl.MapMouseEvent) {
+  async function inspectAt(map: MapLibreMap, event: maplibregl.MapMouseEvent) {
     const queryable = GIS_LAYERS.filter(layer => {
       const state = gisStateRef.current[layer.id]
       return !layer.restricted && layer.queryable && state?.visible
