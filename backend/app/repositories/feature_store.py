@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from typing import Any
 
-from sqlalchemy import bindparam, create_engine, text
+from sqlalchemy import bindparam, create_engine, inspect, text
 from sqlalchemy.engine import Engine
 
 from app.scoring import HabitatFeatures
@@ -15,13 +17,14 @@ class StoredEnvironmentalFeatures:
     completeness: float
     provenance: list[str]
     terrain: str | None = None
+    gis_features: dict[str, Any] | None = None
 
 
 class FeatureStoreRepository:
     """Read normalized H3 environmental features from PostgreSQL or SQLite.
 
-    Serving only needs scalar features keyed by H3. Geometry is reconstructed from the
-    H3 index by the API, so the lightweight Ultra store does not require PostGIS.
+    Serving only needs scalar/JSON features keyed by H3. Geometry is reconstructed from
+    the H3 index by the API, so the lightweight Ultra store does not require PostGIS.
     """
 
     def __init__(self, database_url: str, engine: Engine | None = None) -> None:
@@ -35,12 +38,17 @@ class FeatureStoreRepository:
             return "postgres_h3_env_features"
         return f"{self.engine.dialect.name}_h3_env_features"
 
+    def _columns(self) -> set[str]:
+        return {column["name"] for column in inspect(self.engine).get_columns("env_features")}
+
     def get_many(self, cells: list[str]) -> dict[str, StoredEnvironmentalFeatures]:
         if not cells:
             return {}
 
+        columns = self._columns()
+        gis_select = "gis_features_json" if "gis_features_json" in columns else "NULL AS gis_features_json"
         query = text(
-            """
+            f"""
             SELECT
               h3,
               elevation_m,
@@ -48,7 +56,8 @@ class FeatureStoreRepository:
               grassland_proxy,
               forest_edge_proxy,
               soil_moisture_proxy,
-              completeness
+              completeness,
+              {gis_select}
             FROM env_features
             WHERE h3 IN :cells
             """
@@ -59,6 +68,17 @@ class FeatureStoreRepository:
 
         result: dict[str, StoredEnvironmentalFeatures] = {}
         for row in rows:
+            gis_features = None
+            raw_gis = row.get("gis_features_json")
+            if isinstance(raw_gis, dict):
+                gis_features = raw_gis
+            elif isinstance(raw_gis, str) and raw_gis.strip():
+                try:
+                    parsed = json.loads(raw_gis)
+                    gis_features = parsed if isinstance(parsed, dict) else None
+                except json.JSONDecodeError:
+                    gis_features = None
+
             result[row["h3"]] = StoredEnvironmentalFeatures(
                 h3=row["h3"],
                 habitat=HabitatFeatures(
@@ -72,5 +92,6 @@ class FeatureStoreRepository:
                 completeness=float(0.0 if row["completeness"] is None else row["completeness"]),
                 provenance=[self.provenance_name],
                 terrain=row["terrain"],
+                gis_features=gis_features,
             )
         return result
