@@ -5,6 +5,7 @@ import './styles.css'
 import './advanced.css'
 import './temporal.css'
 import './version.css'
+import './map-pro.css'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('MykoKnoks root element is missing')
