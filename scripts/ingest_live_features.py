@@ -37,7 +37,7 @@ async def run(args: argparse.Namespace) -> None:
             "geometry": cell_geometry(cell),
             "snapshot": snapshot.model_dump(),
             "resolution": args.resolution,
-            "feature_version": "norway-live-v0.2",
+            "feature_version": "prediction-gis-v0.9",
         }
 
     with output.open("w", encoding="utf-8") as handle:
