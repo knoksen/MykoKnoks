@@ -4,7 +4,28 @@ set -euo pipefail
 APP_NAME="mykoknoks"
 PUBLIC_HOST="knoksen.nova.usbx.me"
 BASE_PATH="/mykoknoks-api"
+STATE_DIR="$HOME/.local/share/$APP_NAME"
+DEPLOY_INFO="$STATE_DIR/deployment.env"
 PORT="${1:-}"
+EXISTING_PORT=""
+
+# Upgrade path: reuse the port already recorded by a previous MykoKnoks deployment.
+# A running assigned port will not appear in `app-ports free`, so it must not be
+# rejected merely because it is already occupied by our own service.
+if [[ -f "$DEPLOY_INFO" ]]; then
+  # shellcheck disable=SC1090
+  source "$DEPLOY_INFO"
+  EXISTING_PORT="${MYKOKNOKS_PORT:-}"
+  if [[ -n "$EXISTING_PORT" ]] && ! [[ "$EXISTING_PORT" =~ ^[0-9]{5}$ ]]; then
+    echo "WARNING: ignoring invalid existing MykoKnoks port '$EXISTING_PORT'." >&2
+    EXISTING_PORT=""
+  fi
+fi
+
+if [[ -z "$PORT" && -n "$EXISTING_PORT" ]]; then
+  PORT="$EXISTING_PORT"
+  echo "Reusing existing MykoKnoks Ultra port: $PORT"
+fi
 
 PORTS_OUTPUT=""
 if command -v app-ports >/dev/null 2>&1; then
@@ -18,20 +39,24 @@ if command -v app-ports >/dev/null 2>&1; then
   fi
 
   if [[ -z "$PORT" ]]; then
-    echo "ERROR: no free assigned Ultra port could be detected." >&2
+    echo "ERROR: no existing or free assigned Ultra port could be detected." >&2
     printf '%s\n' "$PORTS_OUTPUT" >&2
     exit 2
   fi
 
-  if ! printf '%s\n' "$PORTS_OUTPUT" | grep -qw "$PORT"; then
-    echo "ERROR: port $PORT was not listed by 'app-ports free'." >&2
+  if [[ "$PORT" == "$EXISTING_PORT" && -n "$EXISTING_PORT" ]]; then
+    echo "Existing deployment owns port $PORT; skipping free-port validation for upgrade."
+  elif ! printf '%s\n' "$PORTS_OUTPUT" | grep -qw "$PORT"; then
+    echo "ERROR: port $PORT was not the existing MykoKnoks port and was not listed by 'app-ports free'." >&2
     printf '%s\n' "$PORTS_OUTPUT" >&2
     exit 3
   fi
 elif [[ -z "$PORT" ]]; then
-  echo "ERROR: app-ports is unavailable and no explicit port was supplied." >&2
+  echo "ERROR: app-ports is unavailable and no existing or explicit port was supplied." >&2
   echo "Usage: bash deploy/ultra/install.sh [assigned-5-digit-port]" >&2
   exit 2
+elif [[ "$PORT" == "$EXISTING_PORT" && -n "$EXISTING_PORT" ]]; then
+  echo "Reusing existing MykoKnoks port $PORT; app-ports validation unavailable."
 else
   echo "WARNING: app-ports command not found; cannot verify Ultra port allocation." >&2
 fi
@@ -44,10 +69,8 @@ fi
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/../.." && pwd)"
 BACKEND_DIR="$REPO_ROOT/backend"
-STATE_DIR="$HOME/.local/share/$APP_NAME"
 VENV_DIR="$STATE_DIR/venv"
 ENV_FILE="$STATE_DIR/mykoknoks.env"
-DEPLOY_INFO="$STATE_DIR/deployment.env"
 LITE_STORE="$STATE_DIR/features.sqlite"
 INIT_STORE="$REPO_ROOT/scripts/init_lite_feature_store.py"
 SERVICE_DIR="$HOME/.config/systemd/user"
@@ -139,6 +162,7 @@ chmod 600 "$DEPLOY_INFO"
 
 systemctl --user daemon-reload
 systemctl --user enable --now "$APP_NAME.service"
+systemctl --user restart "$APP_NAME.service"
 systemctl --user is-active --quiet "$APP_NAME.service"
 
 if command -v app-nginx >/dev/null 2>&1; then
@@ -165,7 +189,7 @@ else
 fi
 
 echo ""
-echo "MykoKnoks Ultra deployment installed."
+echo "MykoKnoks Ultra deployment installed/upgraded."
 echo "Port:    $PORT"
 echo "Local:   http://127.0.0.1:${PORT}/health"
 echo "Public:  ${PUBLIC_URL}"
