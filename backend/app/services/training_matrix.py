@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable
 from typing import Any
 
 
@@ -59,9 +58,9 @@ def feature_vector_from_store_row(row: dict[str, Any]) -> dict[str, float] | Non
 
 
 def build_training_rows(
-    feature_rows: Iterable[dict[str, Any]],
-    presence_cells: Iterable[str],
-    background_cells: Iterable[str],
+    feature_rows: list[dict[str, Any]],
+    presence_cells: list[str],
+    background_cells: list[str],
     *,
     block_resolution: int = 6,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
