@@ -1,7 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl, { Map } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { ForecastCollection, ForecastFeature } from '../api'
+import {
+  GIS_GROUP_LABELS,
+  GIS_LAYERS,
+  identifyWmsLayer,
+  initialGISState,
+  type GISIdentifyResult,
+  type GISLayerDefinition,
+  type GISLayerGroup,
+  type GISLayerRuntimeState,
+  wmsLegendUrl,
+  wmsTileUrl,
+} from '../gisLayers'
 
 export type MapMetric = 'combined' | 'habitat' | 'fruiting' | 'confidence'
 type BasemapId = 'topo' | 'gray' | 'terrain'
@@ -23,6 +35,11 @@ type HoverInfo = {
   synthetic: boolean
 }
 
+type InspectPoint = {
+  lng: number
+  lat: number
+}
+
 const SOURCE = 'forecast-cells'
 const CENTER_SOURCE = 'search-center'
 const FILL_LAYER = 'forecast-fill'
@@ -31,6 +48,7 @@ const HOVER_LAYER = 'forecast-hover'
 const SELECTED_LAYER = 'forecast-selected'
 const CENTER_LAYER = 'search-center-point'
 const BASEMAP_STORAGE = 'mykoknoks.v07.basemap'
+const GIS_STORAGE = 'mykoknoks.v08.gis-layers'
 
 const BASEMAPS: Record<BasemapId, { label: string; short: string; layer: string }> = {
   topo: { label: 'Topo', short: 'COLOR', layer: 'topo' },
@@ -54,9 +72,29 @@ function readBasemap(): BasemapId {
     const value = window.localStorage.getItem(BASEMAP_STORAGE)
     if (value === 'topo' || value === 'gray' || value === 'terrain') return value
   } catch {
-    // A storage failure should never prevent the map from starting.
+    // Storage is optional.
   }
   return 'topo'
+}
+
+function readGISState(): Record<string, GISLayerRuntimeState> {
+  const fallback = initialGISState()
+  try {
+    const raw = window.localStorage.getItem(GIS_STORAGE)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw) as Record<string, Partial<GISLayerRuntimeState>>
+    for (const layer of GIS_LAYERS) {
+      const saved = parsed[layer.id]
+      if (!saved) continue
+      fallback[layer.id] = {
+        visible: layer.restricted ? false : Boolean(saved.visible),
+        opacity: typeof saved.opacity === 'number' ? clamp01(saved.opacity) : layer.defaultOpacity,
+      }
+    }
+  } catch {
+    // Invalid local state should never break the map.
+  }
+  return fallback
 }
 
 function tileUrl(layer: string) {
@@ -163,6 +201,23 @@ function fitToCollection(map: Map, data: ForecastCollection | null) {
   })
 }
 
+function overlaySourceId(id: string) {
+  return `eco-source-${id}`
+}
+
+function overlayLayerId(id: string) {
+  return `eco-layer-${id}`
+}
+
+function cleanFeatureInfo(body: string) {
+  return body
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\r/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n+/g, '\n')
+    .trim()
+}
+
 export default function MapView({
   data,
   center,
@@ -188,6 +243,13 @@ export default function MapView({
   const [basemap, setBasemap] = useState<BasemapId>(() => readBasemap())
   const [hover, setHover] = useState<HoverInfo | null>(null)
   const [cursor, setCursor] = useState<[number, number] | null>(null)
+  const [layersOpen, setLayersOpen] = useState(true)
+  const [gisState, setGISState] = useState<Record<string, GISLayerRuntimeState>>(() => readGISState())
+  const gisStateRef = useRef(gisState)
+  const [legendId, setLegendId] = useState<string | null>(null)
+  const [inspectPoint, setInspectPoint] = useState<InspectPoint | null>(null)
+  const [inspection, setInspection] = useState<GISIdentifyResult[]>([])
+  const [inspectionLoading, setInspectionLoading] = useState(false)
 
   dataRef.current = data
   selectRef.current = onSelect
@@ -197,8 +259,70 @@ export default function MapView({
   outlinesRef.current = showOutlines
   selectedRef.current = selectedH3 || ''
   centerRef.current = center
+  gisStateRef.current = gisState
+
+  const activeLayers = useMemo(
+    () => GIS_LAYERS.filter(layer => !layer.restricted && gisState[layer.id]?.visible),
+    [gisState],
+  )
+
+  const groupedLayers = useMemo(() => {
+    const groups = new Map<GISLayerGroup, GISLayerDefinition[]>()
+    for (const layer of GIS_LAYERS) {
+      const list = groups.get(layer.group) || []
+      list.push(layer)
+      groups.set(layer.group, list)
+    }
+    return [...groups.entries()]
+  }, [])
+
+  function syncRasterOverlays(map: Map) {
+    for (const definition of GIS_LAYERS) {
+      const sourceId = overlaySourceId(definition.id)
+      const layerId = overlayLayerId(definition.id)
+      const state = gisStateRef.current[definition.id]
+      const visible = Boolean(state?.visible) && !definition.restricted
+      const tile = wmsTileUrl(definition)
+
+      if (!visible || !tile) {
+        if (map.getLayer(layerId)) map.removeLayer(layerId)
+        if (map.getSource(sourceId)) map.removeSource(sourceId)
+        continue
+      }
+
+      if (!map.getSource(sourceId)) {
+        map.addSource(sourceId, {
+          type: 'raster',
+          tiles: [tile],
+          tileSize: 256,
+          minzoom: definition.minZoom ?? 0,
+          maxzoom: definition.maxZoom ?? 20,
+          attribution: `© ${definition.provider}`,
+        })
+      }
+
+      if (!map.getLayer(layerId)) {
+        const before = map.getLayer(FILL_LAYER) ? FILL_LAYER : undefined
+        map.addLayer({
+          id: layerId,
+          type: 'raster',
+          source: sourceId,
+          minzoom: definition.minZoom ?? 0,
+          maxzoom: definition.maxZoom ?? 20,
+          paint: {
+            'raster-opacity': clamp01(state?.opacity ?? definition.defaultOpacity),
+            'raster-fade-duration': 100,
+          },
+        }, before)
+      } else {
+        map.setPaintProperty(layerId, 'raster-opacity', clamp01(state?.opacity ?? definition.defaultOpacity))
+      }
+    }
+  }
 
   function installAnalysisLayers(map: Map) {
+    syncRasterOverlays(map)
+
     if (!map.getSource(SOURCE)) {
       map.addSource(SOURCE, {
         type: 'geojson',
@@ -285,6 +409,48 @@ export default function MapView({
     }
   }
 
+  async function inspectAt(map: Map, event: maplibregl.MapMouseEvent) {
+    const queryable = GIS_LAYERS.filter(layer => {
+      const state = gisStateRef.current[layer.id]
+      return !layer.restricted && layer.queryable && state?.visible
+    })
+
+    setInspectPoint({ lng: event.lngLat.lng, lat: event.lngLat.lat })
+    if (!queryable.length) {
+      setInspection([])
+      return
+    }
+
+    const bounds = map.getBounds()
+    const canvas = map.getCanvas()
+    setInspectionLoading(true)
+    try {
+      const results = await Promise.all(queryable.map(layer => identifyWmsLayer(layer, {
+        lng: event.lngLat.lng,
+        lat: event.lngLat.lat,
+        west: bounds.getWest(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        north: bounds.getNorth(),
+        width: canvas.clientWidth,
+        height: canvas.clientHeight,
+        x: event.point.x,
+        y: event.point.y,
+      })))
+      setInspection(results.map(result => ({ ...result, body: cleanFeatureInfo(result.body) })))
+    } finally {
+      setInspectionLoading(false)
+    }
+  }
+
+  function openExternal(url: string) {
+    if (window.mykoDesktop?.openExternal) {
+      void window.mykoDesktop.openExternal(url)
+      return
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
   useEffect(() => {
     if (!container.current || mapRef.current) return
 
@@ -345,16 +511,16 @@ export default function MapView({
       }
     })
 
-    map.on('click', FILL_LAYER, event => {
-      const h3 = String(event.features?.[0]?.properties?.h3 || '')
-      const feature = dataRef.current?.features.find(item => item.properties.h3 === h3) || null
-      selectRef.current?.(feature)
-    })
-
     map.on('click', event => {
-      if (!map.getLayer(FILL_LAYER)) return
-      const hits = map.queryRenderedFeatures(event.point, { layers: [FILL_LAYER] })
-      if (hits.length === 0) selectRef.current?.(null)
+      const hits = map.getLayer(FILL_LAYER)
+        ? map.queryRenderedFeatures(event.point, { layers: [FILL_LAYER] })
+        : []
+      const h3 = String(hits[0]?.properties?.h3 || '')
+      const feature = h3
+        ? dataRef.current?.features.find(item => item.properties.h3 === h3) || null
+        : null
+      selectRef.current?.(feature)
+      void inspectAt(map, event)
     })
 
     mapRef.current = map
@@ -372,6 +538,16 @@ export default function MapView({
     setHover(null)
     map.setStyle(basemapStyle(basemap), { diff: false })
   }, [basemap])
+
+  useEffect(() => {
+    try { window.localStorage.setItem(GIS_STORAGE, JSON.stringify(gisState)) } catch { /* optional */ }
+    gisStateRef.current = gisState
+    const map = mapRef.current
+    if (!map) return
+    const update = () => syncRasterOverlays(map)
+    if (map.isStyleLoaded()) update()
+    else map.once('style.load', update)
+  }, [gisState])
 
   useEffect(() => {
     const map = mapRef.current
@@ -442,7 +618,7 @@ export default function MapView({
   }, [selectedH3])
 
   return (
-    <div className="map-pro-shell">
+    <div className="map-pro-shell eco-gis-shell">
       <div ref={container} className="map" />
 
       <div className="basemap-switcher" role="group" aria-label="Basemap">
@@ -459,6 +635,101 @@ export default function MapView({
           </button>
         ))}
       </div>
+
+      <button
+        type="button"
+        className={`eco-layer-toggle ${layersOpen ? 'active' : ''}`}
+        onClick={() => setLayersOpen(value => !value)}
+        title="Ecological GIS layer tree"
+      >
+        Layers <b>{activeLayers.length}</b>
+      </button>
+
+      {layersOpen && (
+        <aside className="eco-layer-tree" aria-label="Ecological GIS layers">
+          <header>
+            <div>
+              <strong>Ecological GIS</strong>
+              <span>WMS overlays · click map to inspect</span>
+            </div>
+            <button type="button" onClick={() => setLayersOpen(false)}>×</button>
+          </header>
+
+          <div className="eco-layer-scroll">
+            {groupedLayers.map(([group, layers]) => (
+              <section className="eco-layer-group" key={group}>
+                <h4>{GIS_GROUP_LABELS[group]}</h4>
+                {layers.map(layer => {
+                  const state = gisState[layer.id] || { visible: false, opacity: layer.defaultOpacity }
+                  const legend = wmsLegendUrl(layer)
+                  return (
+                    <div className={`eco-layer-item ${state.visible ? 'enabled' : ''} ${layer.restricted ? 'restricted' : ''}`} key={layer.id}>
+                      <div className="eco-layer-main">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={state.visible}
+                            disabled={layer.restricted}
+                            onChange={event => setGISState(current => ({
+                              ...current,
+                              [layer.id]: { ...state, visible: event.target.checked },
+                            }))}
+                          />
+                          <span className="eco-layer-check" />
+                          <span className="eco-layer-name">
+                            <strong>{layer.label}</strong>
+                            <small>{layer.provider} · {layer.short}</small>
+                          </span>
+                        </label>
+                        {layer.restricted && <em>LOCKED</em>}
+                      </div>
+
+                      <p>{layer.description}</p>
+
+                      {!layer.restricted && (
+                        <div className="eco-layer-controls">
+                          <span>{Math.round(state.opacity * 100)}%</span>
+                          <input
+                            type="range"
+                            min="10"
+                            max="100"
+                            step="5"
+                            value={Math.round(state.opacity * 100)}
+                            aria-label={`${layer.label} opacity`}
+                            onChange={event => setGISState(current => ({
+                              ...current,
+                              [layer.id]: { ...state, opacity: Number(event.target.value) / 100 },
+                            }))}
+                          />
+                          {legend && (
+                            <button type="button" onClick={() => setLegendId(current => current === layer.id ? null : layer.id)}>
+                              Legend
+                            </button>
+                          )}
+                          <button type="button" onClick={() => openExternal(layer.sourceUrl)}>Source</button>
+                        </div>
+                      )}
+
+                      {layer.restricted && (
+                        <div className="eco-restricted-note">
+                          Requires time-limited GeoID/Norge digitalt token. Credentials are never stored in the repository.
+                          <button type="button" onClick={() => openExternal('https://services.norgeibilder.no/token')}>Get token</button>
+                        </div>
+                      )}
+
+                      {legendId === layer.id && legend && (
+                        <div className="eco-layer-legend">
+                          <img src={legend} alt={`${layer.label} legend`} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </section>
+            ))}
+          </div>
+        </aside>
+      )}
 
       <button
         type="button"
@@ -480,6 +751,28 @@ export default function MapView({
           <code>{hover.h3}</code>
           <i className={hover.synthetic ? '' : 'real'}>{hover.synthetic ? 'DEMO' : 'EVIDENCE'}</i>
         </div>
+      )}
+
+      {(inspectPoint || inspectionLoading) && (
+        <aside className="eco-inspect-card">
+          <header>
+            <div>
+              <strong>Inspect</strong>
+              <span>{inspectPoint ? `${inspectPoint.lat.toFixed(5)}, ${inspectPoint.lng.toFixed(5)}` : 'Map point'}</span>
+            </div>
+            <button type="button" onClick={() => { setInspectPoint(null); setInspection([]) }}>×</button>
+          </header>
+          {inspectionLoading && <p className="eco-inspect-loading">Querying active WMS layers…</p>}
+          {!inspectionLoading && inspection.length === 0 && (
+            <p className="eco-inspect-empty">Enable a queryable layer such as AR5, SR16, NGU, ecosystems or Artskart, then click the map.</p>
+          )}
+          {!inspectionLoading && inspection.map(result => (
+            <section key={result.layerId} className={result.ok ? '' : 'failed'}>
+              <h5>{result.label}<small>{result.provider}</small></h5>
+              <pre>{result.body}</pre>
+            </section>
+          ))}
+        </aside>
       )}
 
       <div className="map-coordinate-readout">
