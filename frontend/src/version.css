@@ -3,6 +3,6 @@
   font-size: 0;
 }
 .desktop-runtime .brand-line > span::after {
-  content: 'v0.7.0';
+  content: 'v0.8.0';
   font-size: 10px;
 }
