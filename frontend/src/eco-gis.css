@@ -1,0 +1,386 @@
+/* MykoKnoks v0.8 ecological GIS layer tree */
+
+.eco-layer-toggle {
+  position: absolute;
+  z-index: 7;
+  top: 10px;
+  left: 10px;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(225, 242, 232, .18);
+  border-radius: 9px;
+  color: #b7c9bd;
+  background: rgba(5, 14, 9, .86);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .24);
+  font-size: 7px;
+  font-weight: 900;
+  backdrop-filter: blur(12px);
+}
+
+.eco-layer-toggle:hover,
+.eco-layer-toggle.active {
+  border-color: rgba(101, 228, 148, .35);
+  color: #dcf4e5;
+}
+
+.eco-layer-toggle b {
+  min-width: 18px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  color: #82e3a5;
+  background: rgba(101, 228, 148, .1);
+  text-align: center;
+}
+
+.eco-layer-tree {
+  position: absolute;
+  z-index: 8;
+  top: 48px;
+  left: 10px;
+  width: min(350px, calc(100% - 20px));
+  max-height: calc(100% - 92px);
+  overflow: hidden;
+  border: 1px solid rgba(220, 242, 229, .18);
+  border-radius: 13px;
+  color: #b8c9be;
+  background: rgba(5, 14, 9, .93);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, .38);
+  backdrop-filter: blur(18px);
+}
+
+.eco-layer-tree > header,
+.eco-inspect-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px 10px;
+  border-bottom: 1px solid rgba(218, 240, 226, .11);
+}
+
+.eco-layer-tree > header strong,
+.eco-inspect-card > header strong,
+.eco-layer-tree > header span,
+.eco-inspect-card > header span {
+  display: block;
+}
+
+.eco-layer-tree > header strong,
+.eco-inspect-card > header strong {
+  color: #d5e8dc;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.eco-layer-tree > header span,
+.eco-inspect-card > header span {
+  margin-top: 3px;
+  color: #667a6e;
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.eco-layer-tree > header button,
+.eco-inspect-card > header button {
+  width: 23px;
+  height: 23px;
+  padding: 0;
+  border: 1px solid rgba(220, 242, 229, .1);
+  border-radius: 7px;
+  color: #85988d;
+  background: rgba(255, 255, 255, .025);
+  font-size: 15px;
+  line-height: 19px;
+}
+
+.eco-layer-scroll {
+  max-height: calc(100vh - 205px);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(101, 228, 148, .22) transparent;
+}
+
+.eco-layer-group {
+  padding: 9px 10px 4px;
+  border-bottom: 1px solid rgba(218, 240, 226, .07);
+}
+
+.eco-layer-group:last-child {
+  border-bottom: 0;
+}
+
+.eco-layer-group h4 {
+  margin: 0 0 7px;
+  color: #64796d;
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.eco-layer-item {
+  margin-bottom: 7px;
+  padding: 8px;
+  border: 1px solid rgba(213, 237, 222, .08);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .015);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.eco-layer-item.enabled {
+  border-color: rgba(101, 228, 148, .22);
+  background: rgba(58, 125, 80, .065);
+}
+
+.eco-layer-item.restricted {
+  border-style: dashed;
+  opacity: .82;
+}
+
+.eco-layer-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.eco-layer-main label {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.eco-layer-main input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.eco-layer-check {
+  position: relative;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 14px;
+  border: 1px solid rgba(215, 239, 223, .19);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.eco-layer-check::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #718279;
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.eco-layer-main input:checked + .eco-layer-check {
+  border-color: rgba(101, 228, 148, .34);
+  background: rgba(101, 228, 148, .12);
+}
+
+.eco-layer-main input:checked + .eco-layer-check::after {
+  transform: translateX(12px);
+  background: #70e99c;
+}
+
+.eco-layer-main input:disabled + .eco-layer-check {
+  opacity: .36;
+}
+
+.eco-layer-name {
+  min-width: 0;
+}
+
+.eco-layer-name strong,
+.eco-layer-name small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eco-layer-name strong {
+  color: #b8cbbf;
+  font-size: 7px;
+  font-weight: 900;
+}
+
+.eco-layer-name small {
+  margin-top: 2px;
+  color: #5e7166;
+  font-size: 5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.eco-layer-main em {
+  padding: 3px 5px;
+  border: 1px solid rgba(224, 190, 94, .2);
+  border-radius: 999px;
+  color: #c2a858;
+  background: rgba(224, 190, 94, .065);
+  font-size: 5px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.eco-layer-item > p {
+  margin: 6px 0 0 34px;
+  color: #607268;
+  font-size: 5.5px;
+  line-height: 1.4;
+}
+
+.eco-layer-controls {
+  margin: 7px 0 0 34px;
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.eco-layer-controls > span {
+  color: #6d8175;
+  font: 5px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.eco-layer-controls input[type='range'] {
+  width: 100%;
+  min-width: 70px;
+  accent-color: #65e494;
+}
+
+.eco-layer-controls button,
+.eco-restricted-note button {
+  width: auto;
+  padding: 4px 6px;
+  border: 1px solid rgba(220, 242, 229, .11);
+  border-radius: 6px;
+  color: #84988c;
+  background: rgba(255, 255, 255, .025);
+  font-size: 5px;
+  font-weight: 900;
+}
+
+.eco-layer-controls button:hover,
+.eco-restricted-note button:hover {
+  border-color: rgba(101, 228, 148, .28);
+  color: #bfe9ce;
+}
+
+.eco-restricted-note {
+  margin: 7px 0 0 34px;
+  color: #776f54;
+  font-size: 5.5px;
+  line-height: 1.4;
+}
+
+.eco-restricted-note button {
+  margin-left: 6px;
+  color: #ba9f52;
+}
+
+.eco-layer-legend {
+  margin: 8px 0 1px 34px;
+  max-height: 160px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid rgba(215, 239, 223, .09);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .94);
+}
+
+.eco-layer-legend img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.eco-inspect-card {
+  position: absolute;
+  z-index: 7;
+  left: 10px;
+  bottom: 12px;
+  width: min(390px, calc(100% - 20px));
+  max-height: 38%;
+  overflow: hidden;
+  border: 1px solid rgba(220, 242, 229, .17);
+  border-radius: 12px;
+  color: #aabcb1;
+  background: rgba(5, 14, 9, .94);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .37);
+  backdrop-filter: blur(17px);
+}
+
+.eco-inspect-card > header {
+  padding: 8px 10px;
+}
+
+.eco-inspect-card > section,
+.eco-inspect-loading,
+.eco-inspect-empty {
+  margin: 0;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(218, 240, 226, .075);
+}
+
+.eco-inspect-card > section {
+  max-height: 120px;
+  overflow: auto;
+}
+
+.eco-inspect-card > section h5 {
+  margin: 0 0 5px;
+  color: #9edcb5;
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.eco-inspect-card > section h5 small {
+  margin-left: 6px;
+  color: #607368;
+  font-size: 5px;
+  font-weight: 700;
+}
+
+.eco-inspect-card > section pre {
+  margin: 0;
+  overflow: auto;
+  color: #82968a;
+  font: 5.5px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.eco-inspect-card > section.failed h5 {
+  color: #d9a47e;
+}
+
+.eco-inspect-loading,
+.eco-inspect-empty {
+  color: #718479;
+  font-size: 6px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+  .eco-layer-toggle { top: 52px; }
+  .eco-layer-tree { top: 88px; max-height: calc(100% - 132px); }
+}
+
+@media (max-width: 700px) {
+  .eco-layer-toggle { top: 50px; left: 8px; }
+  .eco-layer-tree { top: 87px; left: 8px; width: calc(100% - 16px); max-height: calc(100% - 135px); }
+  .eco-layer-scroll { max-height: calc(100vh - 250px); }
+  .eco-inspect-card { left: 8px; bottom: 8px; width: calc(100% - 16px); max-height: 31%; }
+}
