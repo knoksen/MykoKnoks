@@ -6,7 +6,7 @@ from typing import Any
 
 
 def _parse_time(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return datetime.fromisoformat(value)
 
 
 def _window_total(
