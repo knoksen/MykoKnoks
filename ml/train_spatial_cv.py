@@ -1,4 +1,4 @@
-"""Train a candidate SDM with spatially grouped cross-validation and a manifest."""
+"""Train a candidate habitat SDM with grouped spatial cross-validation."""
 from __future__ import annotations
 
 import argparse
@@ -13,7 +13,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 from sklearn.model_selection import StratifiedGroupKFold
 
-from features import TARGET_COLUMN, V1_FEATURE_COLUMNS
+from features import TARGET_COLUMN, V1_HABITAT_FEATURE_COLUMNS
 
 
 def _sha256(path: Path) -> str:
@@ -49,12 +49,12 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, default=Path("models/registry"))
     args = parser.parse_args()
 
-    required = [*V1_FEATURE_COLUMNS, TARGET_COLUMN, args.group_column]
+    required = [*V1_HABITAT_FEATURE_COLUMNS, TARGET_COLUMN, args.group_column]
     frame = pd.read_csv(args.csv).dropna(subset=required).copy()
     if frame.empty:
-        raise SystemExit("No complete rows remain after applying the v1 feature contract.")
+        raise SystemExit("No complete rows remain after applying the v1 habitat feature contract.")
     if frame[TARGET_COLUMN].nunique() < 2:
-        raise SystemExit("Training requires both presence and background/absence-labelled rows.")
+        raise SystemExit("Training requires both presence and explicit background rows.")
 
     groups = frame[args.group_column].astype(str)
     unique_groups = groups.nunique()
@@ -65,14 +65,14 @@ def main() -> None:
     splitter = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=42)
     fold_metrics: list[dict] = []
     for fold, (train_idx, test_idx) in enumerate(
-        splitter.split(frame[V1_FEATURE_COLUMNS], frame[TARGET_COLUMN], groups),
+        splitter.split(frame[V1_HABITAT_FEATURE_COLUMNS], frame[TARGET_COLUMN], groups),
         start=1,
     ):
         train = frame.iloc[train_idx]
         test = frame.iloc[test_idx]
         model = _model()
-        model.fit(train[V1_FEATURE_COLUMNS], train[TARGET_COLUMN])
-        probabilities = model.predict_proba(test[V1_FEATURE_COLUMNS])[:, 1]
+        model.fit(train[V1_HABITAT_FEATURE_COLUMNS], train[TARGET_COLUMN])
+        probabilities = model.predict_proba(test[V1_HABITAT_FEATURE_COLUMNS])[:, 1]
         auc = _auc(test[TARGET_COLUMN], probabilities)
         fold_metrics.append(
             {
@@ -93,7 +93,7 @@ def main() -> None:
         )
 
     final_model = _model()
-    final_model.fit(frame[V1_FEATURE_COLUMNS], frame[TARGET_COLUMN])
+    final_model.fit(frame[V1_HABITAT_FEATURE_COLUMNS], frame[TARGET_COLUMN])
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     slug = args.species.strip().casefold().replace(" ", "-").replace("/", "-")
@@ -104,7 +104,7 @@ def main() -> None:
     joblib.dump(
         {
             "model": final_model,
-            "features": V1_FEATURE_COLUMNS,
+            "features": V1_HABITAT_FEATURE_COLUMNS,
             "species": args.species,
             "model_id": model_id,
         },
@@ -114,14 +114,15 @@ def main() -> None:
     valid_auc = [item["roc_auc"] for item in fold_metrics if item["roc_auc"] is not None]
     manifest = {
         "id": model_id,
-        "name": f"{args.species} spatial SDM candidate",
+        "name": f"{args.species} spatial habitat SDM candidate",
         "version": "1.0.0",
         "status": "candidate",
         "species": [args.species],
         "model_type": "HistGradientBoostingClassifier",
         "trained": True,
         "calibrated": False,
-        "feature_contract": V1_FEATURE_COLUMNS,
+        "target_semantics": "presence versus operator-supplied background, not confirmed absence",
+        "feature_contract": V1_HABITAT_FEATURE_COLUMNS,
         "dataset": {
             "path": str(args.csv),
             "sha256": _sha256(args.csv),
@@ -146,13 +147,17 @@ def main() -> None:
             ),
         },
         "semantics": (
-            "Candidate species-distribution model. Do not call probabilities calibrated until "
-            "an explicit calibration stage and independent spatial validation are completed."
+            "Candidate habitat discrimination model. Background is not biological absence. "
+            "Do not call scores calibrated occurrence probabilities until an explicit "
+            "calibration stage and independent spatial validation are completed."
         ),
         "created_at": datetime.now(UTC).isoformat(),
         "artifact": str(model_path),
     }
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     print(json.dumps(manifest, indent=2, ensure_ascii=False))
 
 
