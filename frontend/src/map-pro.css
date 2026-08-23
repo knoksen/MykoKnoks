@@ -1,0 +1,300 @@
+/* MykoKnoks v0.7 professional map engine */
+
+.map-pro-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  overflow: hidden;
+  background: #08110d;
+}
+
+.map-pro-shell > .map {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+}
+
+.basemap-switcher {
+  position: absolute;
+  z-index: 5;
+  top: 10px;
+  left: 50%;
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(225, 242, 232, .2);
+  border-radius: 11px;
+  background: rgba(5, 14, 9, .86);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(14px);
+}
+
+.basemap-switcher button {
+  width: auto;
+  min-width: 65px;
+  padding: 6px 10px 5px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #82968a;
+  background: transparent;
+  line-height: 1.05;
+}
+
+.basemap-switcher button strong,
+.basemap-switcher button small {
+  display: block;
+}
+
+.basemap-switcher button strong {
+  color: inherit;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.basemap-switcher button small {
+  margin-top: 3px;
+  color: #566b5f;
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.basemap-switcher button:hover {
+  color: #c7dbcf;
+  background: rgba(255, 255, 255, .035);
+}
+
+.basemap-switcher button.active {
+  border-color: rgba(101, 228, 148, .26);
+  color: #c8f7d9;
+  background: rgba(38, 91, 59, .72);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .04);
+}
+
+.basemap-switcher button.active small {
+  color: #78dfa0;
+}
+
+.fit-map-button {
+  position: absolute;
+  z-index: 5;
+  top: 10px;
+  right: 54px;
+  width: auto;
+  padding: 8px 10px;
+  border: 1px solid rgba(225, 242, 232, .18);
+  border-radius: 9px;
+  color: #b6c9bd;
+  background: rgba(5, 14, 9, .84);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .24);
+  font-size: 7px;
+  font-weight: 900;
+  backdrop-filter: blur(12px);
+}
+
+.fit-map-button:hover:not(:disabled) {
+  border-color: rgba(101, 228, 148, .42);
+  color: #d8f4e2;
+}
+
+.map-hover-card {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 43px;
+  min-width: 205px;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    'label score'
+    'h3 chip';
+  align-items: center;
+  gap: 3px 13px;
+  padding: 9px 10px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(214, 243, 225, .2);
+  border-radius: 10px;
+  background: rgba(5, 15, 10, .9);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
+  pointer-events: none;
+  backdrop-filter: blur(14px);
+}
+
+.map-hover-card > span {
+  grid-area: label;
+  color: #72877b;
+  font-size: 7px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.map-hover-card > strong {
+  grid-area: score;
+  color: #b8f5ce;
+  font-size: 14px;
+  text-align: right;
+}
+
+.map-hover-card > code {
+  grid-area: h3;
+  max-width: 145px;
+  overflow: hidden;
+  color: #98aa9f;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-hover-card > i {
+  grid-area: chip;
+  padding: 3px 5px;
+  border: 1px solid rgba(226, 196, 106, .18);
+  border-radius: 999px;
+  color: #a99151;
+  background: rgba(226, 196, 106, .07);
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 900;
+  text-align: center;
+}
+
+.map-hover-card > i.real {
+  border-color: rgba(101, 228, 148, .2);
+  color: #7fe1a3;
+  background: rgba(101, 228, 148, .08);
+}
+
+.map-coordinate-readout {
+  position: absolute;
+  z-index: 4;
+  right: 10px;
+  bottom: 36px;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(225, 242, 232, .12);
+  border-radius: 8px;
+  color: #9eafa5;
+  background: rgba(5, 14, 9, .76);
+  font: 6px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace;
+  pointer-events: none;
+  backdrop-filter: blur(9px);
+}
+
+.map-coordinate-readout b {
+  grid-column: 1 / -1;
+  color: #53675c;
+  font-size: 5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.map-center-reticle {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(218, 255, 232, .13);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.map-center-reticle::before,
+.map-center-reticle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: rgba(218, 255, 232, .18);
+  transform: translate(-50%, -50%);
+}
+
+.map-center-reticle::before { width: 38px; height: 1px; }
+.map-center-reticle::after { width: 1px; height: 38px; }
+
+.map-center-reticle span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(131, 238, 169, .72);
+}
+
+.map-pro-shell .maplibregl-ctrl-top-right {
+  top: 45px;
+  right: 4px;
+}
+
+.map-pro-shell .maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgba(226, 244, 233, .16) !important;
+  border-radius: 9px !important;
+  background: rgba(5, 14, 9, .84) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .25) !important;
+  backdrop-filter: blur(10px);
+}
+
+.map-pro-shell .maplibregl-ctrl-group button {
+  filter: invert(.84) sepia(.08) hue-rotate(76deg);
+}
+
+.map-pro-shell .maplibregl-ctrl-scale {
+  margin: 0 10px 8px 0;
+  border-color: rgba(218, 236, 225, .5);
+  color: #c3d0c8;
+  background: rgba(5, 14, 9, .72);
+  font-size: 7px;
+}
+
+.map-pro-shell .maplibregl-ctrl-attrib {
+  color: #718279 !important;
+  background: rgba(5, 14, 9, .72) !important;
+}
+
+.map-pro-shell .maplibregl-ctrl-attrib a {
+  color: #8db89c !important;
+}
+
+@media (max-width: 1100px) {
+  .basemap-switcher {
+    top: 9px;
+  }
+  .fit-map-button {
+    top: 52px;
+    right: 8px;
+  }
+  .map-pro-shell .maplibregl-ctrl-top-right {
+    top: 88px;
+  }
+}
+
+@media (max-width: 700px) {
+  .basemap-switcher {
+    left: 8px;
+    transform: none;
+  }
+  .basemap-switcher button {
+    min-width: 54px;
+    padding: 6px 7px 5px;
+  }
+  .map-coordinate-readout {
+    display: none;
+  }
+  .map-hover-card {
+    bottom: 52px;
+    min-width: 185px;
+  }
+  .map-center-reticle {
+    display: none;
+  }
+}
