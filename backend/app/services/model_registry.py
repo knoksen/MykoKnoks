@@ -48,8 +48,32 @@ _BUILTIN_MODELS = (
         semantics="Suitability index. Not occurrence probability or identification advice.",
     ),
     ModelDescriptor(
+        id="weather-memory-fruiting-heuristic-v1",
+        name="Weather-memory fruiting heuristic",
+        version="1.0.0",
+        status="production-heuristic",
+        species=(),
+        model_type="explainable temporal weather-memory index",
+        calibrated=False,
+        trained=False,
+        feature_contract=(
+            "air_temperature_c",
+            "relative_humidity_pct",
+            "precipitation_rate_mm_h",
+            "antecedent_precip_24h_mm",
+            "antecedent_precip_72h_mm",
+            "antecedent_precip_168h_mm",
+            "moisture_memory_index",
+        ),
+        validation="unit-tested timeline aggregation and rainfall-memory semantics",
+        semantics=(
+            "Weather timing index only. Memory is derived from the available forecast timeline; "
+            "it is not observed pre-forecast rainfall or species occurrence probability."
+        ),
+    ),
+    ModelDescriptor(
         id="fungal-sdm-spatial-cv-v1-candidate",
-        name="Spatial cross-validation SDM candidate",
+        name="Spatial habitat SDM candidate",
         version="1.0.0",
         status="training-pipeline",
         species=(),
@@ -64,12 +88,15 @@ _BUILTIN_MODELS = (
             "elevation_m",
             "slope_deg",
             "terrain_roughness_m",
-            "antecedent_precip_24h_mm",
-            "antecedent_precip_72h_mm",
-            "moisture_memory_index",
         ),
-        validation="requires occurrence/background dataset and held-out spatial blocks",
-        semantics="Candidate training contract only until a manifest with CV metrics is registered.",
+        validation=(
+            "requires documented occurrence/background sampling, held-out spatial blocks, "
+            "independent validation and separate probability calibration"
+        ),
+        semantics=(
+            "Habitat-discrimination training contract. Background is not confirmed biological "
+            "absence and candidate scores are not calibrated occurrence probabilities."
+        ),
     ),
 )
 
