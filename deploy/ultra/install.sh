@@ -83,12 +83,12 @@ fi
 cat > "$ENV_FILE" <<EOF
 APP_ENV=production
 APP_NAME=MykoKnoks
-APP_VERSION=0.2.4
+APP_VERSION=0.9.0
 API_PREFIX=/api/v1
 ROOT_PATH=${BASE_PATH}
 CORS_ORIGINS=https://appassets.androidplatform.net,https://${PUBLIC_HOST}
 DATABASE_URL=sqlite:///${LITE_STORE}
-MET_USER_AGENT=MykoKnoks/0.2.4 https://github.com/knoksen/MykoKnoks
+MET_USER_AGENT=MykoKnoks/0.9.0 https://github.com/knoksen/MykoKnoks
 MET_TIMEOUT_SECONDS=10
 UPSTREAM_TIMEOUT_SECONDS=20
 DEFAULT_H3_RESOLUTION=9
@@ -116,8 +116,6 @@ TimeoutStopSec=20
 WantedBy=default.target
 EOF
 
-# A trailing slash on proxy_pass intentionally strips BASE_PATH before requests
-# reach FastAPI. ROOT_PATH tells FastAPI the public prefix for generated URLs.
 cat > "$NGINX_FILE" <<EOF
 location ${BASE_PATH}/ {
     proxy_pass              http://127.0.0.1:${PORT}/;
