@@ -12,6 +12,7 @@ from app.config import Settings
 from app.schemas import EnvironmentalSnapshot
 from app.scoring import HabitatFeatures
 from app.services.gis_features import normalize_gis_evidence
+from app.services.terrain_metrics import sample_terrain_metrics
 
 
 @dataclass(frozen=True)
@@ -92,11 +93,19 @@ class LiveNorwayFeatureService:
             return None
         return await client.feature_info(lat, lon, layer.name)
 
-    async def probe(self, lat: float, lon: float, include_wms: bool = True) -> EnvironmentalSnapshot:
+    async def probe(
+        self,
+        lat: float,
+        lon: float,
+        include_wms: bool = True,
+        include_terrain_metrics: bool = False,
+    ) -> EnvironmentalSnapshot:
         warnings: list[str] = []
         provenance: list[str] = []
         elevation = None
         terrain = None
+        slope_deg = None
+        terrain_roughness_m = None
         ar5_payload: dict | str | None = None
         sr16_payload: dict | str | None = None
         losmasse_payload: dict | str | None = None
@@ -109,6 +118,20 @@ class LiveNorwayFeatureService:
         except (httpx.HTTPError, ValueError) as exc:
             warnings.append(f"Kartverket elevation unavailable: {type(exc).__name__}")
 
+        if include_terrain_metrics and elevation is not None:
+            try:
+                metrics = await sample_terrain_metrics(
+                    self.clients.elevation,
+                    lat,
+                    lon,
+                    center_elevation_m=float(elevation),
+                )
+                slope_deg = metrics.slope_deg
+                terrain_roughness_m = metrics.roughness_m
+                provenance.append("kartverket_elevation_gradient")
+            except (httpx.HTTPError, ValueError) as exc:
+                warnings.append(f"Kartverket terrain gradient unavailable: {type(exc).__name__}")
+
         if include_wms:
             probes = [
                 self._wms_probe(self.clients.ar5, lat, lon, ("areal", "ar5", "markslag")),
@@ -116,7 +139,10 @@ class LiveNorwayFeatureService:
                 self._wms_probe(self.clients.losmasse, lat, lon, ("løsmasse", "losmasse", "flate")),
             ]
             results = await asyncio.gather(*probes, return_exceptions=True)
-            for source_id, result in zip(("nibio_ar5", "nibio_sr16", "ngu_losmasse"), results):
+            for source_id, result in zip(
+                ("nibio_ar5", "nibio_sr16", "ngu_losmasse"),
+                results,
+            ):
                 if isinstance(result, BaseException):
                     warnings.append(f"{source_id} unavailable: {type(result).__name__}")
                     continue
@@ -131,7 +157,13 @@ class LiveNorwayFeatureService:
                 else:
                     losmasse_payload = result.payload
 
-        normalized = normalize_gis_evidence(ar5_payload, sr16_payload, losmasse_payload)
+        normalized = normalize_gis_evidence(
+            ar5_payload,
+            sr16_payload,
+            losmasse_payload,
+            slope_deg=slope_deg,
+            terrain_roughness_m=terrain_roughness_m,
+        )
         grassland, forest_edge, soil_moisture, proxy_drivers = proxies_from_evidence(
             terrain,
             ar5_payload,
@@ -149,6 +181,8 @@ class LiveNorwayFeatureService:
             lon=lon,
             elevation_m=elevation,
             terrain=terrain,
+            slope_deg=slope_deg,
+            terrain_roughness_m=terrain_roughness_m,
             ar5_evidence=ar5_payload,
             sr16_evidence=sr16_payload,
             loose_sediment_evidence=losmasse_payload,
