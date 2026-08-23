@@ -12,7 +12,7 @@ LEGACY_FEATURE_COLUMNS = [
     "relative_humidity_mean_7d",
 ]
 
-V1_FEATURE_COLUMNS = [
+V1_HABITAT_FEATURE_COLUMNS = [
     "open_land_score",
     "wetland_score",
     "forest_score",
@@ -20,8 +20,15 @@ V1_FEATURE_COLUMNS = [
     "elevation_m",
     "slope_deg",
     "terrain_roughness_m",
+]
+
+V1_TEMPORAL_FEATURE_COLUMNS = [
+    "air_temperature_c",
+    "relative_humidity_pct",
+    "precipitation_rate_mm_h",
     "antecedent_precip_24h_mm",
     "antecedent_precip_72h_mm",
+    "antecedent_precip_168h_mm",
     "moisture_memory_index",
 ]
 
