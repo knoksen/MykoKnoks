@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.prediction import router as prediction_router
 from app.api.routes import router
 from app.api.temporal import router as temporal_router
 from app.config import get_settings
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 app.include_router(router, prefix=settings.api_prefix)
 app.include_router(temporal_router, prefix=settings.api_prefix)
+app.include_router(prediction_router, prefix=settings.api_prefix)
 
 
 @app.get("/health")
