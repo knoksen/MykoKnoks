@@ -59,6 +59,8 @@ def _gis_driver_summary(gis: dict) -> list[str]:
         drivers.append(f"NGU substrate: {gis['loose_sediment_class']}")
     if gis.get("slope_deg") is not None:
         drivers.append(f"terrain slope: {float(gis['slope_deg']):.1f}°")
+    if gis.get("terrain_roughness_m") is not None:
+        drivers.append(f"terrain roughness: {float(gis['terrain_roughness_m']):.1f} m")
     return drivers
 
 
@@ -71,11 +73,12 @@ async def prediction_cells(
     resolution: int | None = Query(None, ge=7, le=10),
     data_mode: Literal["demo", "live", "store"] = Query("demo"),
     include_occurrences: bool = Query(True),
+    detailed_live_gis: bool = Query(False),
 ) -> dict:
-    """Return H3 prediction cells with explicit GIS feature vectors and decomposition.
+    """Return H3 prediction cells with explicit GIS vectors and decomposition.
 
-    Scores remain heuristic ecological indices. Artskart data are presence-only context and
-    are never interpreted as absence when no match is returned.
+    Scores remain ecological indices, not calibrated occurrence probabilities. Detailed
+    live GIS probing is opt-in and tightly capped to protect upstream public services.
     """
     resolution = resolution or settings.default_h3_resolution
     requested_cells = cells_around(lat, lon, radius_km, resolution)
@@ -86,6 +89,11 @@ async def prediction_cells(
                 f"Live mode would query {len(requested_cells)} cells; limit is "
                 f"{settings.live_cell_limit}. Reduce radius or H3 resolution."
             ),
+        )
+    if data_mode == "live" and detailed_live_gis and len(requested_cells) > 12:
+        raise HTTPException(
+            status_code=422,
+            detail="Detailed live GIS is capped at 12 H3 cells. Use the persisted H3 store for larger areas.",
         )
 
     weather_client = MetNorwayClient(settings.met_user_agent, settings.met_timeout_seconds)
@@ -100,7 +108,11 @@ async def prediction_cells(
         )
         weather_source = wx.source
     except httpx.HTTPError as exc:
-        weather_features = WeatherFeatures(temperature_c=11.0, humidity_pct=80.0, precipitation_1h_mm=0.5)
+        weather_features = WeatherFeatures(
+            temperature_c=11.0,
+            humidity_pct=80.0,
+            precipitation_1h_mm=0.5,
+        )
         weather_warning = f"MET Norway unavailable: {type(exc).__name__}; fallback weather used"
 
     f_score, f_drivers = fruiting_score(weather_features)
@@ -128,6 +140,8 @@ async def prediction_cells(
             requested_cells,
             service,
             settings.live_feature_concurrency,
+            include_wms=detailed_live_gis,
+            include_terrain_metrics=detailed_live_gis,
         )
     elif data_mode == "store":
         try:
@@ -161,7 +175,7 @@ async def prediction_cells(
             terrain = stored.terrain
             gis = stored.gis_features or _empty_gis()
             if stored.gis_features is None:
-                source_warnings.append("stored cell predates v0.9 normalized GIS vector")
+                source_warnings.append("stored cell predates normalized GIS feature vectors")
             store_hits += 1
         else:
             h_features = synthetic_habitat_features(cell)
@@ -174,7 +188,10 @@ async def prediction_cells(
         profile = str(score_components.get("profile") or "unknown")
         profile_counts[profile] = profile_counts.get(profile, 0) + 1
         gis_coverage = float(gis.get("coverage") or 0.0)
-        confidence = 0.25 if synthetic else min(0.90, 0.34 + 0.44 * completeness + 0.12 * gis_coverage)
+        confidence = 0.25 if synthetic else min(
+            0.90,
+            0.34 + 0.44 * completeness + 0.12 * gis_coverage,
+        )
         warnings = list(source_warnings)
         if weather_warning:
             warnings.append(weather_warning)
@@ -211,13 +228,19 @@ async def prediction_cells(
         "type": "FeatureCollection",
         "features": features,
         "metadata": {
-            "engine": "prediction-gis-v0.9",
-            "model_semantics": "explainable heuristic ecological suitability; not calibrated occurrence probability",
+            "engine": "model-platform-v1.0",
+            "model_registry_id": "semilanceata-gis-heuristic-v1"
+            if species.strip().casefold() == "psilocybe semilanceata"
+            else "generic-legacy-v1",
+            "model_semantics": (
+                "explainable ecological suitability; not calibrated occurrence probability"
+            ),
             "species": species,
             "center": [lon, lat],
             "radius_km": radius_km,
             "h3_resolution": resolution,
             "data_mode": data_mode,
+            "detailed_live_gis": detailed_live_gis,
             "weather_source": weather_source,
             "feature_store_backend": backend if data_mode == "store" else None,
             "feature_store_hits": store_hits,
@@ -226,7 +249,13 @@ async def prediction_cells(
             "profile_counts": profile_counts,
             "occurrence_context": occurrence,
             "warnings": metadata_warnings,
-            "guardrail": "No nearby Artskart match is not absence evidence; occurrence context does not alter the v0.9 cell score.",
-            "next_stage": "bulk normalized H3 ingestion + spatial cross-validation + probability calibration",
+            "guardrail": (
+                "No nearby Artskart match is not absence evidence. Presence-only occurrence "
+                "context does not automatically alter the cell score."
+            ),
+            "next_stage": (
+                "populate national H3 store, build occurrence/background training matrix, "
+                "run grouped spatial CV, then calibrate independently"
+            ),
         },
     }

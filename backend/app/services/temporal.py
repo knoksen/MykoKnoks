@@ -4,7 +4,8 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from app.scoring import WeatherFeatures, fruiting_score
+from app.scoring import WeatherFeatures, clamp01, fruiting_score
+from app.services.weather_memory import enrich_precipitation_memory
 
 
 def _parse_time(value: str) -> datetime:
@@ -23,10 +24,10 @@ def _precipitation(data: dict[str, Any]) -> tuple[float, int]:
 def build_temporal_forecast(payload: dict[str, Any], days: int = 10) -> dict[str, Any]:
     """Convert MET Locationforecast timeseries to an auditable fruiting timeline.
 
-    This deliberately remains an explainable weather-driven heuristic. It is not a
-    trained phenology model and does not represent species occurrence probability.
+    v1.0 adds a decaying precipitation-memory proxy. The memory is built from the
+    supplied forecast timeline and therefore does not pretend to be observed rainfall
+    before the first available timestamp.
     """
-
     raw_series = payload.get("properties", {}).get("timeseries", [])
     if not raw_series:
         return {
@@ -34,13 +35,13 @@ def build_temporal_forecast(payload: dict[str, Any], days: int = 10) -> dict[str
             "points": [],
             "days": [],
             "best_day": None,
-            "model": "weather-driven fruiting heuristic",
+            "model": "weather-memory fruiting heuristic v1.0",
             "warning": "No MET forecast timeseries returned.",
         }
 
     first_time = _parse_time(raw_series[0]["time"])
     cutoff = first_time + timedelta(days=max(1, min(days, 14)))
-    points: list[dict[str, Any]] = []
+    base_points: list[dict[str, Any]] = []
 
     for series in raw_series:
         time_text = series.get("time")
@@ -67,8 +68,7 @@ def build_temporal_forecast(payload: dict[str, Any], days: int = 10) -> dict[str
                 precipitation_1h_mm=precipitation_rate,
             )
         )
-
-        points.append(
+        base_points.append(
             {
                 "time": timestamp.isoformat().replace("+00:00", "Z"),
                 "air_temperature_c": round(float(temperature), 2),
@@ -77,10 +77,19 @@ def build_temporal_forecast(payload: dict[str, Any], days: int = 10) -> dict[str
                 "precipitation_mm": round(precipitation_mm, 2),
                 "precipitation_window_hours": precipitation_window_hours,
                 "precipitation_rate_mm_h": round(precipitation_rate, 3),
-                "fruiting_score": round(score, 4),
+                "fruiting_score_base": round(score, 4),
                 "drivers": drivers,
             }
         )
+
+    points = enrich_precipitation_memory(base_points)
+    for point in points:
+        base_score = float(point["fruiting_score_base"])
+        moisture_memory = float(point["moisture_memory_index"])
+        adjusted = clamp01(0.78 * base_score + 0.22 * moisture_memory)
+        point["fruiting_score"] = round(adjusted, 4)
+        if moisture_memory >= 0.55:
+            point["drivers"] = [*point["drivers"], "antecedent rainfall memory"]
 
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for point in points:
@@ -91,6 +100,7 @@ def build_temporal_forecast(payload: dict[str, Any], days: int = 10) -> dict[str
         scores = [float(item["fruiting_score"]) for item in items]
         temperatures = [float(item["air_temperature_c"]) for item in items]
         humidities = [float(item["relative_humidity_pct"]) for item in items]
+        memories = [float(item["moisture_memory_index"]) for item in items]
         best = max(items, key=lambda item: float(item["fruiting_score"]))
         drivers: list[str] = []
         for item in sorted(items, key=lambda item: float(item["fruiting_score"]), reverse=True):
@@ -110,9 +120,17 @@ def build_temporal_forecast(payload: dict[str, Any], days: int = 10) -> dict[str
                 "best_time": best["time"],
                 "temperature_mean_c": round(sum(temperatures) / len(temperatures), 2),
                 "humidity_mean_pct": round(sum(humidities) / len(humidities), 1),
-                "precipitation_total_mm": round(sum(float(item["precipitation_mm"]) for item in items), 2),
+                "precipitation_total_mm": round(
+                    sum(float(item["precipitation_mm"]) for item in items),
+                    2,
+                ),
+                "moisture_memory_mean": round(sum(memories) / len(memories), 4),
+                "antecedent_precip_72h_peak_mm": round(
+                    max(float(item["antecedent_precip_72h_mm"]) for item in items),
+                    2,
+                ),
                 "sample_count": len(items),
-                "drivers": drivers[:4],
+                "drivers": drivers[:5],
             }
         )
 
@@ -124,9 +142,13 @@ def build_temporal_forecast(payload: dict[str, Any], days: int = 10) -> dict[str
         "points": points,
         "days": daily,
         "best_day": best_day,
-        "model": "weather-driven fruiting heuristic",
+        "model": "weather-memory fruiting heuristic v1.0",
+        "memory_semantics": (
+            "Decaying rainfall memory uses precipitation inside the available MET timeline. "
+            "Warm-up coverage is reported and is not observed pre-forecast rainfall."
+        ),
         "warning": (
-            "Temporal fruiting score is explainable decision support from forecast weather. "
-            "It is not a trained species phenology model or occurrence probability."
+            "Temporal score is explainable decision support. It is not a trained species "
+            "phenology model, an occurrence probability, or observed historical rainfall."
         ),
     }

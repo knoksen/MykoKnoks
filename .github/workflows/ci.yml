@@ -18,12 +18,13 @@ jobs:
         working-directory: backend
       - name: Validate Ultra deployment scripts
         run: bash -n deploy/ultra/*.sh
-      - name: Validate lightweight H3 store tools
+      - name: Compile operational Python tools
+        run: python -m py_compile scripts/*.py ml/*.py
+      - name: Validate lightweight H3 and occurrence stores
         run: |
-          python -m py_compile scripts/init_lite_feature_store.py scripts/load_feature_store_lite.py
           python scripts/init_lite_feature_store.py /tmp/mykoknoks-ci.sqlite
           cat > /tmp/mykoknoks-ci.jsonl <<'EOF'
-          {"h3":"891f1d48967ffff","resolution":9,"geometry":{"type":"Polygon","coordinates":[]},"snapshot":{"elevation_m":42.0,"terrain":"test","grassland_proxy":0.8,"forest_edge_proxy":0.4,"soil_moisture_proxy":0.7,"completeness":0.9,"ar5_evidence":{"test":true}},"feature_version":"ci"}
+          {"h3":"891f1d48967ffff","resolution":9,"geometry":{"type":"Polygon","coordinates":[]},"snapshot":{"elevation_m":42.0,"terrain":"test","grassland_proxy":0.8,"forest_edge_proxy":0.4,"soil_moisture_proxy":0.7,"normalized_gis":{"open_land_score":0.8,"wetland_score":0.2,"forest_score":0.1,"substrate_moisture_score":0.7,"slope_deg":3.0,"terrain_roughness_m":1.1,"coverage":1.0},"completeness":0.9,"ar5_evidence":{"test":true}},"feature_version":"ci"}
           EOF
           python scripts/load_feature_store_lite.py /tmp/mykoknoks-ci.jsonl --database /tmp/mykoknoks-ci.sqlite
           python - <<'PY'
@@ -31,7 +32,67 @@ jobs:
           with sqlite3.connect('/tmp/mykoknoks-ci.sqlite') as conn:
               assert conn.execute('SELECT COUNT(*) FROM env_features').fetchone()[0] == 1
               assert conn.execute('SELECT COUNT(*) FROM env_feature_evidence').fetchone()[0] == 1
-          print('SQLite H3 store smoke test passed')
+              assert conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='occurrence_records'").fetchone()[0] == 1
+              gis = conn.execute('SELECT gis_features_json FROM env_features').fetchone()[0]
+              assert 'slope_deg' in gis
+          print('SQLite ecological store smoke test passed')
+          PY
+
+  model-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e './backend[ml]'
+      - name: Train synthetic spatial-CV candidate
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          path = Path('/tmp/mykoknoks-training.csv')
+          fields = [
+              'open_land_score','wetland_score','forest_score','substrate_moisture_score',
+              'elevation_m','slope_deg','terrain_roughness_m','present','spatial_block'
+          ]
+          with path.open('w', newline='') as handle:
+              writer = csv.DictWriter(handle, fieldnames=fields)
+              writer.writeheader()
+              for group in range(10):
+                  writer.writerow({
+                      'open_land_score': 0.85, 'wetland_score': 0.25, 'forest_score': 0.15,
+                      'substrate_moisture_score': 0.72, 'elevation_m': 70 + group,
+                      'slope_deg': 3 + group * 0.1, 'terrain_roughness_m': 1.2,
+                      'present': 1, 'spatial_block': f'g{group}'
+                  })
+                  writer.writerow({
+                      'open_land_score': 0.25, 'wetland_score': 0.35, 'forest_score': 0.75,
+                      'substrate_moisture_score': 0.40, 'elevation_m': 180 + group,
+                      'slope_deg': 12 + group * 0.1, 'terrain_roughness_m': 4.5,
+                      'present': 0, 'spatial_block': f'g{group}'
+                  })
+          PY
+          python train_spatial_cv.py /tmp/mykoknoks-training.csv \
+            --species 'Psilocybe semilanceata' \
+            --folds 5 \
+            --out-dir /tmp/mykoknoks-models
+        working-directory: ml
+      - name: Validate candidate manifest guardrails
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifests = list(Path('/tmp/mykoknoks-models').glob('*.json'))
+          assert len(manifests) == 1
+          manifest = json.loads(manifests[0].read_text())
+          assert manifest['trained'] is True
+          assert manifest['calibrated'] is False
+          assert manifest['cross_validation']['folds'] == 5
+          assert 'antecedent_precip_72h_mm' not in manifest['feature_contract']
+          assert 'slope_deg' in manifest['feature_contract']
+          print('Spatial-CV candidate manifest smoke test passed')
           PY
 
   frontend:

@@ -80,7 +80,7 @@ def load(jsonl: Path, database: Path) -> int:
                     snap.get("soil_moisture_proxy", 0.5),
                     json.dumps(snap.get("normalized_gis") or {}, ensure_ascii=False),
                     snap.get("completeness", 0.0),
-                    row.get("feature_version", "prediction-gis-v0.9"),
+                    row.get("feature_version", "model-platform-v1.0"),
                 ),
             )
             evidence = evidence_rows(row)

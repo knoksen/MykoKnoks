@@ -52,7 +52,7 @@ else
 fi
 
 echo ""
-echo "H3 feature store:"
+echo "Ecological data store:"
 if [[ -f "$STORE" && -x "$VENV_PY" ]]; then
   "$VENV_PY" - "$STORE" <<'PY'
 import sqlite3
@@ -63,10 +63,23 @@ path = Path(sys.argv[1])
 with sqlite3.connect(path) as conn:
     features = conn.execute("SELECT COUNT(*) FROM env_features").fetchone()[0]
     evidence = conn.execute("SELECT COUNT(*) FROM env_feature_evidence").fetchone()[0]
+    gis = conn.execute(
+        "SELECT COUNT(*) FROM env_features "
+        "WHERE gis_features_json IS NOT NULL AND gis_features_json NOT IN ('', '{}')"
+    ).fetchone()[0]
+    table = conn.execute(
+        "SELECT COUNT(*) FROM sqlite_master "
+        "WHERE type='table' AND name='occurrence_records'"
+    ).fetchone()[0]
+    occurrences = 0
+    if table:
+        occurrences = conn.execute("SELECT COUNT(*) FROM occurrence_records").fetchone()[0]
 print(f"path={path}")
 print(f"size_bytes={path.stat().st_size}")
 print(f"feature_rows={features}")
+print(f"gis_vector_rows={gis}")
 print(f"evidence_rows={evidence}")
+print(f"occurrence_rows={occurrences}")
 PY
 else
   echo "not initialized: $STORE"

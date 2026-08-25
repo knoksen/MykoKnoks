@@ -29,6 +29,7 @@ async def temporal_forecast(
     result["center"] = [lon, lat]
     result["species_specific_weather_model"] = False
     result["interpretation"] = (
-        "Weather-driven fruiting timing only. Combine with habitat suitability for spatial prioritisation."
+        "Weather-driven timing with transparent precipitation memory. Memory is computed "
+        "inside the available MET timeline and does not claim observed pre-forecast history."
     )
     return result

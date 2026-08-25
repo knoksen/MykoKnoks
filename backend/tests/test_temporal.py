@@ -36,7 +36,9 @@ def test_temporal_forecast_groups_days_and_ranks_best_day() -> None:
     assert len(result["days"]) == 2
     assert result["best_day"]["date"] == "2026-08-23"
     assert result["best_day"]["peak_fruiting_score"] > result["days"][0]["peak_fruiting_score"]
-    assert result["model"] == "weather-driven fruiting heuristic"
+    assert result["model"] == "weather-memory fruiting heuristic v1.0"
+    assert result["points"][-1]["antecedent_precip_24h_mm"] == 3.5
+    assert result["points"][-1]["moisture_memory_index"] > 0
 
 
 def test_six_hour_precipitation_is_normalised_for_scoring() -> None:
@@ -54,6 +56,7 @@ def test_six_hour_precipitation_is_normalised_for_scoring() -> None:
     assert point["precipitation_window_hours"] == 6
     assert point["precipitation_rate_mm_h"] == 1.0
     assert point["fruiting_score"] > 0.7
+    assert point["memory_quality"] == "warming_up"
 
 
 def test_empty_met_payload_is_safe() -> None:

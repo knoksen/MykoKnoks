@@ -41,6 +41,8 @@ class EnvironmentalSnapshot(BaseModel):
     lon: float
     elevation_m: float | None = None
     terrain: str | None = None
+    slope_deg: float | None = None
+    terrain_roughness_m: float | None = None
     ar5_evidence: dict | str | None = None
     sr16_evidence: dict | str | None = None
     loose_sediment_evidence: dict | str | None = None

@@ -106,12 +106,12 @@ fi
 cat > "$ENV_FILE" <<EOF
 APP_ENV=production
 APP_NAME=MykoKnoks
-APP_VERSION=0.9.0
+APP_VERSION=1.0.0
 API_PREFIX=/api/v1
 ROOT_PATH=${BASE_PATH}
 CORS_ORIGINS=https://appassets.androidplatform.net,https://${PUBLIC_HOST}
 DATABASE_URL=sqlite:///${LITE_STORE}
-MET_USER_AGENT=MykoKnoks/0.9.0 https://github.com/knoksen/MykoKnoks
+MET_USER_AGENT=MykoKnoks/1.0.0 https://github.com/knoksen/MykoKnoks
 MET_TIMEOUT_SECONDS=10
 UPSTREAM_TIMEOUT_SECONDS=20
 DEFAULT_H3_RESOLUTION=9

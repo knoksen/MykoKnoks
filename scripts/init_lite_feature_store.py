@@ -1,4 +1,4 @@
-"""Initialize or migrate the lightweight SQLite H3 feature store used on Ultra.cc."""
+"""Initialize or migrate the lightweight SQLite data store used on Ultra.cc."""
 from __future__ import annotations
 
 import argparse
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS env_features (
     soil_moisture_proxy REAL,
     gis_features_json TEXT,
     completeness REAL NOT NULL DEFAULT 0.0,
-    feature_version TEXT NOT NULL DEFAULT 'prediction-gis-v0.9',
+    feature_version TEXT NOT NULL DEFAULT 'model-platform-v1.0',
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -40,6 +40,26 @@ CREATE TABLE IF NOT EXISTS env_feature_evidence (
 
 CREATE INDEX IF NOT EXISTS idx_env_evidence_h3
     ON env_feature_evidence(h3);
+
+CREATE TABLE IF NOT EXISTS occurrence_records (
+    source_record_id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    scientific_name TEXT,
+    observed_at TEXT,
+    lat REAL,
+    lon REAL,
+    h3 TEXT,
+    coordinate_uncertainty_m REAL,
+    payload_hash TEXT NOT NULL,
+    raw_json TEXT NOT NULL,
+    ingested_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_occurrence_h3
+    ON occurrence_records(h3);
+
+CREATE INDEX IF NOT EXISTS idx_occurrence_name
+    ON occurrence_records(scientific_name);
 """
 
 
@@ -62,7 +82,7 @@ def initialize(path: Path) -> None:
         conn.executescript(SCHEMA)
         _migrate(conn)
         conn.commit()
-    print(f"initialized/migrated SQLite H3 feature store: {path}")
+    print(f"initialized/migrated MykoKnoks SQLite store: {path}")
 
 
 def main() -> None:
