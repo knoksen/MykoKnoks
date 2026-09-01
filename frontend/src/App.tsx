@@ -10,7 +10,10 @@ import {
   type ForecastFeature,
   type SourceDescriptor,
 } from './api'
-import AnalysisDock, { type SavedSearch } from './components/AnalysisDock'
+import AnalysisDock, {
+  type SavedSearch,
+  type TemporalMapState,
+} from './components/AnalysisDock'
 import MapView, { type MapMetric } from './components/MapView'
 
 const DESKTOP_VERSION = '0.5.0'
@@ -74,6 +77,7 @@ export default function App() {
   const [fillOpacity, setFillOpacity] = useState(0.76)
   const [showOutlines, setShowOutlines] = useState(true)
   const [data, setData] = useState<ForecastCollection | null>(null)
+  const [temporalMap, setTemporalMap] = useState<TemporalMapState | null>(null)
   const [sources, setSources] = useState<SourceDescriptor[]>([])
   const [selectedCell, setSelectedCell] = useState<ForecastFeature | null>(null)
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('cell')
@@ -103,10 +107,38 @@ export default function App() {
     }
   }, [data])
 
+  const mapData = useMemo<ForecastCollection | null>(() => {
+    if (!data || !temporalMap) return data
+    return {
+      ...data,
+      features: data.features.map(feature => {
+        const temporalCell = temporalMap.cells[feature.properties.h3]
+        if (!temporalCell) return feature
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            fruiting: temporalCell.temporal,
+            combined: temporalCell.combined,
+          },
+        }
+      }),
+    }
+  }, [data, temporalMap])
+
+  const selectedDisplayCell = useMemo(() => {
+    if (!selectedCell) return null
+    return mapData?.features.find(
+      feature => feature.properties.h3 === selectedCell.properties.h3,
+    ) || selectedCell
+  }, [selectedCell, mapData])
+
   const visibleCount = useMemo(() => {
-    if (!data?.features.length) return 0
-    return data.features.filter(feature => Number(feature.properties[metric] || 0) >= minScore).length
-  }, [data, metric, minScore])
+    if (!mapData?.features.length) return 0
+    return mapData.features.filter(
+      feature => Number(feature.properties[metric] || 0) >= minScore,
+    ).length
+  }, [mapData, metric, minScore])
 
   async function load() {
     setLoading(true)
@@ -114,6 +146,7 @@ export default function App() {
     try {
       const next = await fetchCells(lat, lon, radius, species, dataMode, resolution)
       setData(next)
+      setTemporalMap(null)
       setLastRun(new Date())
       setSelectedCell(current => {
         if (!current) return null
@@ -213,6 +246,7 @@ export default function App() {
     setApiBaseUrl('')
     setApiConnected(false)
     setDataMode('demo')
+    setTemporalMap(null)
     setApiStatus('Offline demo · no server required')
     setError('')
     void loadSources()
@@ -228,6 +262,7 @@ export default function App() {
       position => {
         setLat(position.coords.latitude)
         setLon(position.coords.longitude)
+        setTemporalMap(null)
         setLoading(false)
       },
       err => {
@@ -246,6 +281,7 @@ export default function App() {
     }
     setError('')
     setDataMode(mode)
+    setTemporalMap(null)
     setSelectedCell(null)
     if (mode === 'live') {
       setRadius(current => Math.min(current, 1))
@@ -264,6 +300,7 @@ export default function App() {
     setRadius(saved.dataMode === 'live' ? Math.min(saved.radius, 1.2) : saved.radius)
     setResolution(saved.dataMode === 'live' ? 9 : saved.resolution)
     setSpecies(saved.species)
+    setTemporalMap(null)
     setSelectedCell(null)
     if (saved.dataMode !== 'demo' && !apiConnected) {
       setDataMode('demo')
@@ -296,7 +333,10 @@ export default function App() {
   }
 
   const activeMode = MODE_COPY[dataMode]
-  const selected = selectedCell?.properties
+  const selected = selectedDisplayCell?.properties
+  const temporalMetricActive = Boolean(
+    temporalMap && (metric === 'combined' || metric === 'fruiting'),
+  )
 
   return (
     <main className="app-shell">
@@ -375,7 +415,7 @@ export default function App() {
             <div className="field-block">
               <label>
                 <span className="field-label">Species / taxon</span>
-                <input value={species} onChange={e => setSpecies(e.target.value)} list="species-presets" />
+                <input value={species} onChange={e => { setSpecies(e.target.value); setTemporalMap(null) }} list="species-presets" />
                 <datalist id="species-presets">
                   <option value="Psilocybe semilanceata" />
                   <option value="Cantharellus cibarius" />
@@ -388,16 +428,16 @@ export default function App() {
             <div className="field-block">
               <div className="field-title"><span>Search center</span><button type="button" className="text-button" onClick={useMyLocation}>Use my position</button></div>
               <div className="coordinate-grid">
-                <label><span>Latitude</span><input type="number" step="0.0001" value={lat} onChange={e => setLat(Number(e.target.value))} /></label>
-                <label><span>Longitude</span><input type="number" step="0.0001" value={lon} onChange={e => setLon(Number(e.target.value))} /></label>
+                <label><span>Latitude</span><input type="number" step="0.0001" value={lat} onChange={e => { setLat(Number(e.target.value)); setTemporalMap(null) }} /></label>
+                <label><span>Longitude</span><input type="number" step="0.0001" value={lon} onChange={e => { setLon(Number(e.target.value)); setTemporalMap(null) }} /></label>
               </div>
-              <button type="button" className="preset-button" onClick={() => { setLat(DEFAULT_LAT); setLon(DEFAULT_LON) }}>Jæren preset · 58.735, 5.647</button>
+              <button type="button" className="preset-button" onClick={() => { setLat(DEFAULT_LAT); setLon(DEFAULT_LON); setTemporalMap(null) }}>Jæren preset · 58.735, 5.647</button>
             </div>
 
             <div className="field-block compact-grid">
               <label>
                 <span className="field-label">H3 resolution</span>
-                <select value={resolution} onChange={e => setResolution(Number(e.target.value))}>
+                <select value={resolution} onChange={e => { setResolution(Number(e.target.value)); setTemporalMap(null) }}>
                   <option value={8}>8 · regional</option>
                   <option value={9}>9 · local</option>
                   <option value={10}>10 · fine</option>
@@ -417,7 +457,7 @@ export default function App() {
               max={dataMode === 'live' ? '1.2' : '15'}
               step="0.1"
               value={radius}
-              onChange={e => setRadius(Number(e.target.value))}
+              onChange={e => { setRadius(Number(e.target.value)); setTemporalMap(null) }}
             />
 
             <button className="run-button" disabled={loading}>
@@ -463,13 +503,16 @@ export default function App() {
             </div>
             <div className="map-run-state">
               <span className={loading ? 'pulse' : ''} />
-              <div><strong>{loading ? 'Computing' : `${visibleCount}/${stats?.cells ?? 0} cells visible`}</strong><small>{species}</small></div>
+              <div>
+                <strong>{loading ? 'Computing' : `${visibleCount}/${stats?.cells ?? 0} cells visible`}</strong>
+                <small>{species}{temporalMetricActive ? ` · ${temporalMap?.label}` : ''}</small>
+              </div>
             </div>
           </div>
 
           <div className="map-canvas-wrap">
             <MapView
-              data={data}
+              data={mapData}
               center={[lon, lat]}
               metric={metric}
               selectedH3={selected?.h3 || null}
@@ -481,7 +524,10 @@ export default function App() {
             <div className="legend-card">
               <div><span>LOW</span><span>HIGH</span></div>
               <i className="legend-gradient" />
-              <small>{METRICS.find(item => item.id === metric)?.label} score · threshold {pct(minScore)}</small>
+              <small>
+                {METRICS.find(item => item.id === metric)?.label} score · threshold {pct(minScore)}
+                {temporalMetricActive ? ` · ${temporalMap?.label} spatial weather` : ''}
+              </small>
             </div>
             <div className="map-hint">Click a visible H3 cell to inspect · Esc clears selection</div>
           </div>
@@ -503,14 +549,14 @@ export default function App() {
               <code className="h3-code">{selected.h3}</code>
 
               <div className="score-hero">
-                <span>Combined suitability</span>
+                <span>{temporalMetricActive ? `Combined suitability · ${temporalMap?.label}` : 'Combined suitability'}</span>
                 <strong>{pct(selected.combined)}</strong>
                 <small>{selected.synthetic_habitat ? 'Synthetic demo surface' : 'Evidence-backed feature cell'}</small>
               </div>
 
               <div className="score-stack">
                 <ScoreBar label="Habitat" value={selected.habitat} />
-                <ScoreBar label="Fruiting" value={selected.fruiting} />
+                <ScoreBar label={temporalMap ? `Fruiting · ${temporalMap.label}` : 'Fruiting'} value={selected.fruiting} />
                 <ScoreBar label="Confidence" value={selected.confidence} />
               </div>
 
@@ -591,16 +637,17 @@ export default function App() {
 
       <AnalysisDock
         data={data}
-        selectedCell={selectedCell}
+        selectedCell={selectedDisplayCell}
         metric={metric}
         context={{ lat, lon, radius, resolution, species, dataMode }}
         onSelectCell={selectCell}
         onApplySearch={applySavedSearch}
+        onTemporalMapChange={setTemporalMap}
       />
 
       <footer className="statusbar">
         <div><i className={apiConnected ? 'online' : ''} /><span>{apiConnected ? 'Secure HTTPS backend connected' : 'Offline-capable local runtime'}</span></div>
-        <div><span>{desktopStatus || `MykoKnoks ${appVersion}`}</span><span>•</span><span>{dataMode.toUpperCase()}</span><span>•</span><span>{metric.toUpperCase()}</span><span>•</span><span>{visibleCount} visible</span></div>
+        <div><span>{desktopStatus || `MykoKnoks ${appVersion}`}</span><span>•</span><span>{dataMode.toUpperCase()}</span><span>•</span><span>{metric.toUpperCase()}</span>{temporalMetricActive && <><span>•</span><span>{temporalMap?.date}</span></>}<span>•</span><span>{visibleCount} visible</span></div>
       </footer>
     </main>
   )
