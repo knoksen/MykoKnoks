@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DataMode, ForecastCollection, ForecastFeature, ForecastProperties } from '../api'
 import {
+  fetchObservedWeatherHistory,
   fetchSpatialTemporalForecast,
   fetchTemporalForecast,
+  type ObservedWeatherHistory,
   type SpatialTemporalForecast,
   type TemporalDay,
   type TemporalForecast,
@@ -127,6 +129,10 @@ function sparklinePoints(values: number[], width = 240, height = 54): string {
     .join(' ')
 }
 
+function mm(value: number | null | undefined) {
+  return value == null ? 'n/a' : `${Number(value).toFixed(1)} mm`
+}
+
 export default function AnalysisDock({
   data,
   selectedCell,
@@ -142,9 +148,11 @@ export default function AnalysisDock({
   const [searchName, setSearchName] = useState('')
   const [temporal, setTemporal] = useState<TemporalForecast | null>(null)
   const [spatialTemporal, setSpatialTemporal] = useState<SpatialTemporalForecast | null>(null)
+  const [observedWeather, setObservedWeather] = useState<ObservedWeatherHistory | null>(null)
   const [temporalLoading, setTemporalLoading] = useState(false)
   const [temporalError, setTemporalError] = useState('')
   const [spatialTemporalError, setSpatialTemporalError] = useState('')
+  const [observedWeatherError, setObservedWeatherError] = useState('')
   const [temporalKey, setTemporalKey] = useState('')
   const [selectedDayDate, setSelectedDayDate] = useState('')
   const [playing, setPlaying] = useState(false)
@@ -251,9 +259,10 @@ export default function AnalysisDock({
     setTemporalLoading(true)
     setTemporalError('')
     setSpatialTemporalError('')
+    setObservedWeatherError('')
     setPlaying(false)
     try {
-      const [centerResult, spatialResult] = await Promise.allSettled([
+      const [centerResult, spatialResult, observedResult] = await Promise.allSettled([
         fetchTemporalForecast(context.lat, context.lon, context.species, 10),
         fetchSpatialTemporalForecast(
           context.lat,
@@ -264,6 +273,7 @@ export default function AnalysisDock({
           10,
           9,
         ),
+        fetchObservedWeatherHistory(context.lat, context.lon, 14),
       ])
 
       if (centerResult.status === 'rejected') throw centerResult.reason
@@ -280,6 +290,17 @@ export default function AnalysisDock({
           spatialResult.reason instanceof Error
             ? spatialResult.reason.message
             : String(spatialResult.reason),
+        )
+      }
+
+      if (observedResult.status === 'fulfilled') {
+        setObservedWeather(observedResult.value)
+      } else {
+        setObservedWeather(null)
+        setObservedWeatherError(
+          observedResult.reason instanceof Error
+            ? observedResult.reason.message
+            : String(observedResult.reason),
         )
       }
     } catch (error) {
@@ -385,6 +406,9 @@ export default function AnalysisDock({
           {spatialTemporalError && temporal && (
             <div className="temporal-stale">Spatial MET unavailable: {spatialTemporalError}. Area ranking is using center weather fallback.</div>
           )}
+          {observedWeatherError && temporal && (
+            <div className="temporal-stale">Observed Frost history unavailable: {observedWeatherError}</div>
+          )}
           {!temporal && temporalLoading && <div className="dock-empty">Loading MET Norway forecast timeline…</div>}
           {!temporal && !temporalLoading && !temporalError && <div className="dock-empty">Temporal forecast requires the connected HTTPS backend.</div>}
 
@@ -451,6 +475,28 @@ export default function AnalysisDock({
                         <small>
                           {selectedCell.properties.h3} · {selectedCellSeries.some(item => item.spatial) ? 'spatial MET node' : 'center fallback'}
                         </small>
+                      </div>
+                    )}
+                    {observedWeather && (
+                      <div className={`observed-weather ${observedWeather.available ? 'available' : ''}`}>
+                        <div className="section-kicker">OBSERVED HISTORY · MET FROST</div>
+                        {observedWeather.available ? (
+                          <>
+                            <div className="observed-weather-grid">
+                              <span><b>{mm(observedWeather.antecedent_precip_24h_standard_mm)}</b> latest P1D</span>
+                              <span><b>{mm(observedWeather.antecedent_precip_72h_standard_mm)}</b> latest 3 P1D</span>
+                              <span><b>{mm(observedWeather.antecedent_precip_168h_standard_mm)}</b> latest 7 P1D</span>
+                            </div>
+                            <small>
+                              {observedWeather.source?.name || observedWeather.source?.id || 'Frost station'}
+                              {observedWeather.source?.distance_km == null ? '' : ` · ${observedWeather.source.distance_km.toFixed(1)} km from search center`}
+                              {observedWeather.data_quality ? ` · ${observedWeather.data_quality.daily_periods_available}/${observedWeather.data_quality.requested_history_days} daily periods` : ''}
+                            </small>
+                            <p>{observedWeather.aggregation_semantics}</p>
+                          </>
+                        ) : (
+                          <p>{observedWeather.reason || 'Observed precipitation is not configured for this deployment.'}</p>
+                        )}
                       </div>
                     )}
                   </div>
