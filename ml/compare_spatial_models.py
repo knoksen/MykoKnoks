@@ -11,15 +11,21 @@ import hashlib
 import json
 import math
 import statistics
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import joblib
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import average_precision_score, brier_score_loss, log_loss, roc_auc_score
+from sklearn.metrics import (
+    average_precision_score,
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+)
 from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -140,8 +146,8 @@ def _evaluate_model(
         metrics.append(
             {
                 "fold": fold_number,
-                "train_rows": int(len(train)),
-                "test_rows": int(len(test)),
+                "train_rows": len(train),
+                "test_rows": len(test),
                 "train_groups": int(train[group_column].nunique()),
                 "test_groups": int(test[group_column].nunique()),
                 "test_group_sha256": _group_signature(test[group_column]),
@@ -254,7 +260,7 @@ def main() -> None:
         "dataset": {
             "path": str(args.csv),
             "sha256": _sha256(args.csv),
-            "rows": int(len(frame)),
+            "rows": len(frame),
             "presence_rows": int(frame[TARGET_COLUMN].sum()),
             "background_rows": int(len(frame) - frame[TARGET_COLUMN].sum()),
             "spatial_groups": unique_groups,
