@@ -37,6 +37,11 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _group_signature(values: pd.Series) -> str:
+    payload = "\n".join(sorted(set(values.astype(str))))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def _logistic() -> Pipeline:
     return Pipeline(
         [
@@ -139,6 +144,7 @@ def _evaluate_model(
                 "test_rows": int(len(test)),
                 "train_groups": int(train[group_column].nunique()),
                 "test_groups": int(test[group_column].nunique()),
+                "test_group_sha256": _group_signature(test[group_column]),
                 "test_presence_rows": int(test[TARGET_COLUMN].sum()),
                 "test_background_rows": int(len(test) - test[TARGET_COLUMN].sum()),
                 "roc_auc": _round(roc_auc),
