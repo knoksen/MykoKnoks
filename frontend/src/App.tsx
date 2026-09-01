@@ -16,8 +16,8 @@ import AnalysisDock, {
 } from './components/AnalysisDock'
 import MapView, { type MapMetric } from './components/MapView'
 
-const DESKTOP_VERSION = '0.5.0'
-const MOBILE_VERSION = '0.2.4'
+const DESKTOP_VERSION = '1.1.0'
+const MOBILE_VERSION = '1.1.0'
 const DEFAULT_LAT = 58.735
 const DEFAULT_LON = 5.647
 const ULTRA_API_CANDIDATE = 'https://knoksen.nova.usbx.me/mykoknoks-api'
