@@ -14,6 +14,9 @@ class Settings(BaseSettings):
 
     met_user_agent: str = "MykoKnoks/1.0.0 https://github.com/knoksen/MykoKnoks"
     met_timeout_seconds: float = 10.0
+    met_spatial_cache_ttl_seconds: float = 900.0
+    met_spatial_max_nodes: int = 9
+    met_spatial_concurrency: int = 4
     upstream_timeout_seconds: float = 20.0
 
     default_h3_resolution: int = 9
