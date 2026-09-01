@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     met_spatial_cache_ttl_seconds: float = 900.0
     met_spatial_max_nodes: int = 9
     met_spatial_concurrency: int = 4
+
+    frost_client_id: str | None = None
+    frost_timeout_seconds: float = 15.0
+    frost_nearest_station_count: int = 3
+
     upstream_timeout_seconds: float = 20.0
 
     default_h3_resolution: int = 9
