@@ -16,8 +16,11 @@ jobs:
           python-version: '3.12'
       - name: Install ML and lint dependencies
         run: pip install -e './backend[dev,ml]'
-      - name: Lint benchmark
-        run: ruff check compare_spatial_models.py
+      - name: Lint v1.1 model tools
+        run: |
+          ruff check compare_spatial_models.py \
+            evaluate_spatial_calibration.py \
+            spatial_feature_importance.py
         working-directory: ml
       - name: Build synthetic spatial dataset
         run: |
@@ -112,4 +115,50 @@ jobs:
 
           assert 'not calibrated occurrence probabilities' in report['scientific_guardrail']
           print('v1.1 spatial model benchmark gate passed')
+          PY
+      - name: Evaluate nested spatial calibration
+        run: |
+          python evaluate_spatial_calibration.py /tmp/mykoknoks-v11-benchmark.csv \
+            --species 'Psilocybe semilanceata' \
+            --model logistic_regression \
+            --method sigmoid \
+            --outer-folds 5 \
+            --inner-folds 3 \
+            --out /tmp/mykoknoks-v11-calibration.json
+        working-directory: ml
+      - name: Evaluate spatial permutation importance
+        run: |
+          python spatial_feature_importance.py /tmp/mykoknoks-v11-benchmark.csv \
+            --species 'Psilocybe semilanceata' \
+            --model random_forest \
+            --folds 5 \
+            --repeats 4 \
+            --out /tmp/mykoknoks-v11-importance.json
+        working-directory: ml
+      - name: Validate calibration and interpretation guardrails
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          calibration = json.loads(Path('/tmp/mykoknoks-v11-calibration.json').read_text())
+          assert calibration['validation']['method'] == 'nested StratifiedGroupKFold'
+          assert calibration['calibration_gate']['scope'] == 'internal-spatial-cv-only'
+          assert isinstance(calibration['calibration_gate']['passed'], bool)
+          assert calibration['calibrated'] is False
+          assert calibration['probability_claim_allowed'] is False
+          assert calibration['independent_validation_completed'] is False
+          for arm in ('raw', 'calibrated'):
+              assert {'roc_auc','pr_auc','brier_score','log_loss','ece_10bin'} <= calibration['summary'][arm].keys()
+
+          importance = json.loads(Path('/tmp/mykoknoks-v11-importance.json').read_text())
+          assert importance['method'] == 'permutation importance on grouped spatial holdout folds'
+          assert importance['scoring'] == 'average_precision'
+          assert importance['folds_evaluated'] > 0
+          assert importance['interpretation_only'] is True
+          assert importance['calibrated'] is False
+          assert importance['probability_claim_allowed'] is False
+          assert len(importance['ranking']) == len(importance['feature_contract'])
+          assert 'not causal attribution' in importance['scientific_guardrail']
+          print('v1.1 calibration and feature-importance guardrails passed')
           PY
