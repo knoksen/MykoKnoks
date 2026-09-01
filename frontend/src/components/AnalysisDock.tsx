@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DataMode, ForecastCollection, ForecastFeature, ForecastProperties } from '../api'
-import { fetchTemporalForecast, type TemporalDay, type TemporalForecast } from '../temporalApi'
+import {
+  fetchSpatialTemporalForecast,
+  fetchTemporalForecast,
+  type SpatialTemporalForecast,
+  type TemporalDay,
+  type TemporalForecast,
+} from '../temporalApi'
 import type { MapMetric } from './MapView'
 
 type DockTab = 'hotspots' | 'timeline' | 'compare' | 'saved'
@@ -84,7 +90,11 @@ function cellSnapshot(feature: ForecastFeature): PinnedCell {
 }
 
 function displayDate(day: TemporalDay) {
-  return new Date(`${day.date}T12:00:00Z`).toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' })
+  return new Date(`${day.date}T12:00:00Z`).toLocaleDateString([], {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+  })
 }
 
 export default function AnalysisDock({ data, selectedCell, metric, context, onSelectCell, onApplySearch }: Props) {
@@ -93,8 +103,10 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => readStored<SavedSearch[]>(SEARCH_STORAGE, []))
   const [searchName, setSearchName] = useState('')
   const [temporal, setTemporal] = useState<TemporalForecast | null>(null)
+  const [spatialTemporal, setSpatialTemporal] = useState<SpatialTemporalForecast | null>(null)
   const [temporalLoading, setTemporalLoading] = useState(false)
   const [temporalError, setTemporalError] = useState('')
+  const [spatialTemporalError, setSpatialTemporalError] = useState('')
   const [temporalKey, setTemporalKey] = useState('')
   const [selectedDayDate, setSelectedDayDate] = useState('')
 
@@ -108,20 +120,46 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
       .slice(0, 10)
   }, [data, metric])
 
-  const currentTemporalKey = `${context.lat.toFixed(4)}:${context.lon.toFixed(4)}:${context.species}`
-  const selectedDay = temporal?.days.find(day => day.date === selectedDayDate) || temporal?.best_day || temporal?.days[0] || null
+  const currentTemporalKey = [
+    context.lat.toFixed(4),
+    context.lon.toFixed(4),
+    context.radius.toFixed(2),
+    context.resolution,
+    context.species,
+  ].join(':')
+  const selectedDay = temporal?.days.find(day => day.date === selectedDayDate)
+    || temporal?.best_day
+    || temporal?.days[0]
+    || null
   const temporalStale = Boolean(temporal && temporalKey !== currentTemporalKey)
 
   const temporalAreas = useMemo(() => {
     if (!data?.features.length || !selectedDay) return []
+
+    const assignments = new Map(
+      (spatialTemporal?.cells || []).map(item => [item.h3, item]),
+    )
+    const nodes = new Map(
+      (spatialTemporal?.weather_nodes || []).map(item => [item.h3, item]),
+    )
+
     return [...data.features]
-      .map(feature => ({
-        feature,
-        score: Number(feature.properties.habitat || 0) * Number(selectedDay.peak_fruiting_score || 0),
-      }))
+      .map(feature => {
+        const assignment = assignments.get(feature.properties.h3)
+        const node = assignment ? nodes.get(assignment.weather_node_h3) : undefined
+        const spatialDay = node?.forecast?.days.find(day => day.date === selectedDay.date)
+        const temporalScore = Number(spatialDay?.peak_fruiting_score ?? selectedDay.peak_fruiting_score ?? 0)
+        return {
+          feature,
+          temporalScore,
+          weatherNodeDistanceKm: assignment?.weather_node_distance_km ?? null,
+          spatial: Boolean(spatialDay),
+          score: Number(feature.properties.habitat || 0) * temporalScore,
+        }
+      })
       .sort((a, b) => b.score - a.score)
       .slice(0, 6)
-  }, [data, selectedDay])
+  }, [data, selectedDay, spatialTemporal])
 
   const currentPinId = selectedCell ? `${selectedCell.properties.species}:${selectedCell.properties.h3}` : ''
   const isPinned = Boolean(currentPinId && pinned.some(item => item.id === currentPinId))
@@ -129,11 +167,37 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
   async function refreshTemporal() {
     setTemporalLoading(true)
     setTemporalError('')
+    setSpatialTemporalError('')
     try {
-      const result = await fetchTemporalForecast(context.lat, context.lon, context.species, 10)
+      const [centerResult, spatialResult] = await Promise.allSettled([
+        fetchTemporalForecast(context.lat, context.lon, context.species, 10),
+        fetchSpatialTemporalForecast(
+          context.lat,
+          context.lon,
+          context.radius,
+          context.resolution,
+          context.species,
+          10,
+          9,
+        ),
+      ])
+
+      if (centerResult.status === 'rejected') throw centerResult.reason
+      const result = centerResult.value
       setTemporal(result)
       setTemporalKey(currentTemporalKey)
       setSelectedDayDate(result.best_day?.date || result.days[0]?.date || '')
+
+      if (spatialResult.status === 'fulfilled') {
+        setSpatialTemporal(spatialResult.value)
+      } else {
+        setSpatialTemporal(null)
+        setSpatialTemporalError(
+          spatialResult.reason instanceof Error
+            ? spatialResult.reason.message
+            : String(spatialResult.reason),
+        )
+      }
     } catch (error) {
       setTemporalError(error instanceof Error ? error.message : String(error))
     } finally {
@@ -209,18 +273,26 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
           <div className="timeline-head">
             <div>
               <strong>10-day fruiting weather window</strong>
-              <span>MET Norway forecast → explainable temperature / humidity / precipitation heuristic.</span>
+              <span>MET Norway forecast → spatially sampled, explainable temperature / humidity / precipitation heuristic.</span>
             </div>
             <button type="button" disabled={temporalLoading} onClick={() => void refreshTemporal()}>{temporalLoading ? 'Loading…' : temporalStale ? 'Refresh changed location' : 'Refresh MET'}</button>
           </div>
 
           {temporalError && <div className="temporal-error">{temporalError}</div>}
+          {spatialTemporalError && temporal && (
+            <div className="temporal-stale">Spatial MET unavailable: {spatialTemporalError}. Area ranking is using center weather fallback.</div>
+          )}
           {!temporal && temporalLoading && <div className="dock-empty">Loading MET Norway forecast timeline…</div>}
           {!temporal && !temporalLoading && !temporalError && <div className="dock-empty">Temporal forecast requires the connected HTTPS backend.</div>}
 
           {temporal && (
             <>
-              {temporalStale && <div className="temporal-stale">Search location or species changed. Refresh to recalculate the timeline.</div>}
+              {temporalStale && <div className="temporal-stale">Search location, radius, H3 resolution or species changed. Refresh to recalculate the timeline.</div>}
+              {spatialTemporal && (
+                <div className="temporal-stale">
+                  Spatial weather · {spatialTemporal.data_quality.label} data support · {spatialTemporal.sampling.successful_weather_nodes}/{spatialTemporal.sampling.requested_weather_nodes} MET nodes · max assignment {spatialTemporal.data_quality.max_assignment_distance_km?.toFixed(1) ?? 'n/a'} km
+                </div>
+              )}
               <div className="timeline-days">
                 {temporal.days.map(day => {
                   const active = selectedDay?.date === day.date
@@ -241,7 +313,7 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
                 <div className="temporal-detail-grid">
                   <div className="temporal-day-detail">
                     <div className="section-kicker">SELECTED DAY</div>
-                    <strong>{displayDate(selectedDay)} · peak {pct(selectedDay.peak_fruiting_score)}</strong>
+                    <strong>{displayDate(selectedDay)} · center peak {pct(selectedDay.peak_fruiting_score)}</strong>
                     <div className="temporal-metrics">
                       <span><b>{selectedDay.temperature_mean_c.toFixed(1)}°C</b> mean temp</span>
                       <span><b>{Math.round(selectedDay.humidity_mean_pct)}%</b> humidity</span>
@@ -260,14 +332,17 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
                         <span>{index + 1}</span>
                         <code>{item.feature.properties.h3}</code>
                         <strong>{pct(item.score)}</strong>
-                        <small>{item.feature.properties.synthetic_habitat ? 'demo habitat' : 'evidence habitat'}</small>
+                        <small>
+                          {item.spatial ? `spatial ${pct(item.temporalScore)}` : `center ${pct(item.temporalScore)}`}
+                          {item.weatherNodeDistanceKm == null ? '' : ` · node ${item.weatherNodeDistanceKm.toFixed(1)} km`}
+                        </small>
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div className="temporal-warning"><strong>Model boundary</strong><span>{temporal.warning}</span></div>
+              <div className="temporal-warning"><strong>Model boundary</strong><span>{spatialTemporal?.scientific_guardrail || temporal.warning}</span></div>
             </>
           )}
         </div>
