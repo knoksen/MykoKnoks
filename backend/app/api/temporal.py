@@ -3,9 +3,11 @@ from __future__ import annotations
 import httpx
 from fastapi import APIRouter, HTTPException, Query
 
+from app.clients.frost import FrostClient
 from app.clients.met import MetNorwayClient
 from app.config import get_settings
 from app.services.grid import cells_around
+from app.services.observed_precipitation import ObservedPrecipitationService
 from app.services.spatial_temporal import SpatialTemporalService, SpatialWeatherUnavailable
 from app.services.temporal import build_temporal_forecast
 
@@ -16,6 +18,10 @@ _spatial_service = SpatialTemporalService(
     cache_ttl_seconds=settings.met_spatial_cache_ttl_seconds,
     max_nodes=settings.met_spatial_max_nodes,
     concurrency=settings.met_spatial_concurrency,
+)
+_observed_precipitation_service = ObservedPrecipitationService(
+    FrostClient(settings.frost_client_id, settings.frost_timeout_seconds),
+    nearest_station_count=settings.frost_nearest_station_count,
 )
 
 
@@ -92,3 +98,25 @@ async def spatial_temporal_forecast(
         }
     )
     return result
+
+
+@router.get("/observed-weather")
+async def observed_weather(
+    lat: float = Query(58.735, ge=-90, le=90),
+    lon: float = Query(5.647, ge=-180, le=180),
+    days: int = Query(14, ge=7, le=31),
+) -> dict:
+    try:
+        return await _observed_precipitation_service.history(lat, lon, days=days)
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 503:
+            raise HTTPException(
+                status_code=503,
+                detail="MET Norway Frost is temporarily unavailable; retry later.",
+            ) from exc
+        raise HTTPException(
+            status_code=502,
+            detail=f"MET Norway Frost upstream error: HTTP {exc.response.status_code}",
+        ) from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"MET Norway Frost upstream error: {exc}") from exc
