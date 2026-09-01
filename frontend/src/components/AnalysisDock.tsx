@@ -26,6 +26,22 @@ export type SavedSearch = SearchContext & {
   savedAt: string
 }
 
+export type TemporalMapCell = {
+  temporal: number
+  combined: number
+  spatial: boolean
+  weatherNodeDistanceKm: number | null
+}
+
+export type TemporalMapState = {
+  date: string
+  label: string
+  cells: Record<string, TemporalMapCell>
+  dataSupport: string
+  successfulWeatherNodes: number
+  requestedWeatherNodes: number
+}
+
 type PinnedCell = Pick<ForecastProperties,
   'h3' | 'species' | 'combined' | 'habitat' | 'fruiting' | 'confidence' |
   'elevation_m' | 'terrain' | 'synthetic_habitat' | 'data_mode'
@@ -41,6 +57,7 @@ type Props = {
   context: SearchContext
   onSelectCell: (feature: ForecastFeature | null) => void
   onApplySearch: (saved: SavedSearch) => void
+  onTemporalMapChange?: (state: TemporalMapState | null) => void
 }
 
 const PIN_STORAGE = 'mykoknoks.v05.pinnedCells'
@@ -97,7 +114,28 @@ function displayDate(day: TemporalDay) {
   })
 }
 
-export default function AnalysisDock({ data, selectedCell, metric, context, onSelectCell, onApplySearch }: Props) {
+function sparklinePoints(values: number[], width = 240, height = 54): string {
+  if (!values.length) return ''
+  const xStep = values.length === 1 ? 0 : width / (values.length - 1)
+  return values
+    .map((value, index) => {
+      const safe = Math.max(0, Math.min(1, Number(value || 0)))
+      const x = index * xStep
+      const y = height - safe * (height - 8) - 4
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(' ')
+}
+
+export default function AnalysisDock({
+  data,
+  selectedCell,
+  metric,
+  context,
+  onSelectCell,
+  onApplySearch,
+  onTemporalMapChange,
+}: Props) {
   const [tab, setTab] = useState<DockTab>('hotspots')
   const [pinned, setPinned] = useState<PinnedCell[]>(() => readStored<PinnedCell[]>(PIN_STORAGE, []))
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => readStored<SavedSearch[]>(SEARCH_STORAGE, []))
@@ -109,6 +147,7 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
   const [spatialTemporalError, setSpatialTemporalError] = useState('')
   const [temporalKey, setTemporalKey] = useState('')
   const [selectedDayDate, setSelectedDayDate] = useState('')
+  const [playing, setPlaying] = useState(false)
 
   useEffect(() => { persist(PIN_STORAGE, pinned) }, [pinned])
   useEffect(() => { persist(SEARCH_STORAGE, savedSearches) }, [savedSearches])
@@ -133,33 +172,77 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
     || null
   const temporalStale = Boolean(temporal && temporalKey !== currentTemporalKey)
 
+  const spatialAssignments = useMemo(
+    () => new Map((spatialTemporal?.cells || []).map(item => [item.h3, item])),
+    [spatialTemporal],
+  )
+  const spatialNodes = useMemo(
+    () => new Map((spatialTemporal?.weather_nodes || []).map(item => [item.h3, item])),
+    [spatialTemporal],
+  )
+
+  const temporalMapState = useMemo<TemporalMapState | null>(() => {
+    if (!data?.features.length || !selectedDay || temporalStale) return null
+    const cells: Record<string, TemporalMapCell> = {}
+    for (const feature of data.features) {
+      const assignment = spatialAssignments.get(feature.properties.h3)
+      const node = assignment ? spatialNodes.get(assignment.weather_node_h3) : undefined
+      const spatialDay = node?.forecast?.days.find(day => day.date === selectedDay.date)
+      const temporalScore = Number(
+        spatialDay?.peak_fruiting_score ?? selectedDay.peak_fruiting_score ?? 0,
+      )
+      cells[feature.properties.h3] = {
+        temporal: temporalScore,
+        combined: Number(feature.properties.habitat || 0) * temporalScore,
+        spatial: Boolean(spatialDay),
+        weatherNodeDistanceKm: assignment?.weather_node_distance_km ?? null,
+      }
+    }
+    return {
+      date: selectedDay.date,
+      label: displayDate(selectedDay),
+      cells,
+      dataSupport: spatialTemporal?.data_quality.label || 'center fallback',
+      successfulWeatherNodes: spatialTemporal?.sampling.successful_weather_nodes || 0,
+      requestedWeatherNodes: spatialTemporal?.sampling.requested_weather_nodes || 0,
+    }
+  }, [data, selectedDay, temporalStale, spatialAssignments, spatialNodes, spatialTemporal])
+
+  useEffect(() => {
+    onTemporalMapChange?.(temporalMapState)
+    return () => onTemporalMapChange?.(null)
+  }, [temporalMapState, onTemporalMapChange])
+
   const temporalAreas = useMemo(() => {
-    if (!data?.features.length || !selectedDay) return []
-
-    const assignments = new Map(
-      (spatialTemporal?.cells || []).map(item => [item.h3, item]),
-    )
-    const nodes = new Map(
-      (spatialTemporal?.weather_nodes || []).map(item => [item.h3, item]),
-    )
-
+    if (!data?.features.length || !temporalMapState) return []
     return [...data.features]
       .map(feature => {
-        const assignment = assignments.get(feature.properties.h3)
-        const node = assignment ? nodes.get(assignment.weather_node_h3) : undefined
-        const spatialDay = node?.forecast?.days.find(day => day.date === selectedDay.date)
-        const temporalScore = Number(spatialDay?.peak_fruiting_score ?? selectedDay.peak_fruiting_score ?? 0)
+        const cell = temporalMapState.cells[feature.properties.h3]
         return {
           feature,
-          temporalScore,
-          weatherNodeDistanceKm: assignment?.weather_node_distance_km ?? null,
-          spatial: Boolean(spatialDay),
-          score: Number(feature.properties.habitat || 0) * temporalScore,
+          temporalScore: cell?.temporal ?? 0,
+          weatherNodeDistanceKm: cell?.weatherNodeDistanceKm ?? null,
+          spatial: Boolean(cell?.spatial),
+          score: cell?.combined ?? 0,
         }
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, 6)
-  }, [data, selectedDay, spatialTemporal])
+  }, [data, temporalMapState])
+
+  const selectedCellSeries = useMemo(() => {
+    if (!temporal?.days.length || !selectedCell) return []
+    const assignment = spatialAssignments.get(selectedCell.properties.h3)
+    const node = assignment ? spatialNodes.get(assignment.weather_node_h3) : undefined
+    return temporal.days.map(day => {
+      const spatialDay = node?.forecast?.days.find(candidate => candidate.date === day.date)
+      return {
+        date: day.date,
+        score: Number(spatialDay?.peak_fruiting_score ?? day.peak_fruiting_score ?? 0),
+        spatial: Boolean(spatialDay),
+      }
+    })
+  }, [temporal, selectedCell, spatialAssignments, spatialNodes])
 
   const currentPinId = selectedCell ? `${selectedCell.properties.species}:${selectedCell.properties.h3}` : ''
   const isPinned = Boolean(currentPinId && pinned.some(item => item.id === currentPinId))
@@ -168,6 +251,7 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
     setTemporalLoading(true)
     setTemporalError('')
     setSpatialTemporalError('')
+    setPlaying(false)
     try {
       const [centerResult, spatialResult] = await Promise.allSettled([
         fetchTemporalForecast(context.lat, context.lon, context.species, 10),
@@ -209,6 +293,18 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
     if (tab === 'timeline' && !temporal && !temporalLoading) void refreshTemporal()
   }, [tab])
 
+  useEffect(() => {
+    if (!playing || !temporal?.days.length) return
+    const timer = window.setInterval(() => {
+      setSelectedDayDate(current => {
+        const index = temporal.days.findIndex(day => day.date === current)
+        const next = index < 0 ? 0 : (index + 1) % temporal.days.length
+        return temporal.days[next].date
+      })
+    }, 1300)
+    return () => window.clearInterval(timer)
+  }, [playing, temporal])
+
   function pinSelected() {
     if (!selectedCell || isPinned) return
     setPinned(current => [cellSnapshot(selectedCell), ...current].slice(0, 12))
@@ -227,6 +323,12 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
     setSearchName('')
     setTab('saved')
   }
+
+  const selectedDayIndex = Math.max(
+    0,
+    temporal?.days.findIndex(day => day.date === selectedDay?.date) ?? 0,
+  )
+  const sparkPoints = sparklinePoints(selectedCellSeries.map(item => item.score))
 
   return (
     <section className="analysis-dock glass-panel">
@@ -276,6 +378,7 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
               <span>MET Norway forecast → spatially sampled, explainable temperature / humidity / precipitation heuristic.</span>
             </div>
             <button type="button" disabled={temporalLoading} onClick={() => void refreshTemporal()}>{temporalLoading ? 'Loading…' : temporalStale ? 'Refresh changed location' : 'Refresh MET'}</button>
+            <button type="button" disabled={!temporal?.days.length} onClick={() => setPlaying(value => !value)}>{playing ? 'Pause map' : 'Play days'}</button>
           </div>
 
           {temporalError && <div className="temporal-error">{temporalError}</div>}
@@ -298,7 +401,7 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
                   const active = selectedDay?.date === day.date
                   const best = temporal.best_day?.date === day.date
                   return (
-                    <button type="button" key={day.date} className={`timeline-day ${active ? 'active' : ''}`} onClick={() => setSelectedDayDate(day.date)}>
+                    <button type="button" key={day.date} className={`timeline-day ${active ? 'active' : ''}`} onClick={() => { setPlaying(false); setSelectedDayDate(day.date) }}>
                       <span>{displayDate(day)}</span>
                       <strong>{pct(day.peak_fruiting_score)}</strong>
                       <i><b style={{ height: `${Math.max(4, day.peak_fruiting_score * 100)}%` }} /></i>
@@ -308,6 +411,24 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
                   )
                 })}
               </div>
+
+              {temporal.days.length > 1 && (
+                <div className="timeline-playback">
+                  <span>{playing ? 'Animating map' : 'Selected day'} · {selectedDay ? displayDate(selectedDay) : '—'}</span>
+                  <input
+                    aria-label="Forecast day"
+                    type="range"
+                    min="0"
+                    max={Math.max(0, temporal.days.length - 1)}
+                    step="1"
+                    value={selectedDayIndex}
+                    onChange={event => {
+                      setPlaying(false)
+                      setSelectedDayDate(temporal.days[Number(event.target.value)]?.date || '')
+                    }}
+                  />
+                </div>
+              )}
 
               {selectedDay && (
                 <div className="temporal-detail-grid">
@@ -321,6 +442,17 @@ export default function AnalysisDock({ data, selectedCell, metric, context, onSe
                       <span><b>{new Date(selectedDay.best_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</b> peak time</span>
                     </div>
                     <div className="tag-cloud">{selectedDay.drivers.map(driver => <span key={driver}>{driver}</span>)}</div>
+                    {selectedCell && selectedCellSeries.length > 0 && (
+                      <div className="temporal-sparkline">
+                        <div className="section-kicker">SELECTED CELL · 10-DAY TRACE</div>
+                        <svg viewBox="0 0 240 54" role="img" aria-label="Selected cell temporal suitability trace">
+                          <polyline points={sparkPoints} fill="none" stroke="currentColor" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
+                        </svg>
+                        <small>
+                          {selectedCell.properties.h3} · {selectedCellSeries.some(item => item.spatial) ? 'spatial MET node' : 'center fallback'}
+                        </small>
+                      </div>
+                    )}
                   </div>
 
                   <div className="temporal-area-rank">
