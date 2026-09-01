@@ -40,6 +40,48 @@ export type TemporalForecast = {
   warning: string
 }
 
+export type SpatialWeatherNode = {
+  h3: string
+  center: [number, number]
+  forecast: TemporalForecast | null
+  cached: boolean
+  error: string | null
+}
+
+export type SpatialTemporalCell = {
+  h3: string
+  center: [number, number]
+  weather_node_h3: string
+  weather_node_distance_km: number
+}
+
+export type SpatialTemporalForecast = {
+  species: string
+  center: [number, number]
+  radius_km: number
+  h3_resolution: number
+  cell_count: number
+  species_specific_weather_model: boolean
+  interpretation: string
+  sampling: {
+    method: string
+    assignment: string
+    requested_weather_nodes: number
+    successful_weather_nodes: number
+    concurrency_limit: number
+    cache_ttl_seconds: number
+  }
+  weather_nodes: SpatialWeatherNode[]
+  cells: SpatialTemporalCell[]
+  data_quality: {
+    label: 'high' | 'moderate' | 'limited'
+    weather_node_coverage_ratio: number
+    max_assignment_distance_km: number | null
+    meaning: string
+  }
+  scientific_guardrail: string
+}
+
 async function requestJson(url: string): Promise<unknown> {
   if (window.mykoDesktop?.isDesktop) {
     const result = await window.mykoDesktop.httpRequest(url, {
@@ -83,4 +125,28 @@ export async function fetchTemporalForecast(
     days: String(Math.max(1, Math.min(14, Math.round(days)))),
   })
   return await requestJson(`${base}/api/v1/temporal?${params}`) as TemporalForecast
+}
+
+export async function fetchSpatialTemporalForecast(
+  lat: number,
+  lon: number,
+  radiusKm: number,
+  resolution: number,
+  species: string,
+  days = 10,
+  maxWeatherNodes = 9,
+): Promise<SpatialTemporalForecast> {
+  const base = getApiBaseUrl()
+  if (!base) throw new Error('Spatial temporal forecast requires the MykoKnoks HTTPS API.')
+
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lon),
+    radius_km: String(radiusKm),
+    resolution: String(resolution),
+    species,
+    days: String(Math.max(1, Math.min(14, Math.round(days)))),
+    max_weather_nodes: String(Math.max(1, Math.min(16, Math.round(maxWeatherNodes)))),
+  })
+  return await requestJson(`${base}/api/v1/temporal/cells?${params}`) as SpatialTemporalForecast
 }
