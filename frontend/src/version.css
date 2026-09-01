@@ -3,6 +3,6 @@
   font-size: 0;
 }
 .brand-line > span::after {
-  content: 'v1.0.0';
+  content: 'v1.1.0';
   font-size: 10px;
 }

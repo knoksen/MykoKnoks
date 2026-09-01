@@ -78,6 +78,15 @@ SERVICE_FILE="$SERVICE_DIR/$APP_NAME.service"
 NGINX_DIR="$HOME/.apps/nginx/proxy.d"
 NGINX_FILE="$NGINX_DIR/$APP_NAME.conf"
 
+# Preserve an already configured Frost client ID on normal upgrades. An explicit
+# FROST_CLIENT_ID in the installer environment takes precedence. The client ID is
+# sufficient for Frost's freely available observations; no client secret is stored here.
+EXISTING_FROST_CLIENT_ID=""
+if [[ -f "$ENV_FILE" ]]; then
+  EXISTING_FROST_CLIENT_ID="$(grep -m1 '^FROST_CLIENT_ID=' "$ENV_FILE" | cut -d= -f2- || true)"
+fi
+FROST_CLIENT_ID="${FROST_CLIENT_ID:-$EXISTING_FROST_CLIENT_ID}"
+
 if [[ ! -f "$BACKEND_DIR/pyproject.toml" ]]; then
   echo "ERROR: backend/pyproject.toml not found. Run this installer from a MykoKnoks checkout." >&2
   exit 4
@@ -106,13 +115,19 @@ fi
 cat > "$ENV_FILE" <<EOF
 APP_ENV=production
 APP_NAME=MykoKnoks
-APP_VERSION=1.0.0
+APP_VERSION=1.1.0
 API_PREFIX=/api/v1
 ROOT_PATH=${BASE_PATH}
 CORS_ORIGINS=https://appassets.androidplatform.net,https://${PUBLIC_HOST}
 DATABASE_URL=sqlite:///${LITE_STORE}
-MET_USER_AGENT=MykoKnoks/1.0.0 https://github.com/knoksen/MykoKnoks
+MET_USER_AGENT=MykoKnoks/1.1.0 https://github.com/knoksen/MykoKnoks
 MET_TIMEOUT_SECONDS=10
+MET_SPATIAL_CACHE_TTL_SECONDS=900
+MET_SPATIAL_MAX_NODES=9
+MET_SPATIAL_CONCURRENCY=4
+FROST_CLIENT_ID=${FROST_CLIENT_ID}
+FROST_TIMEOUT_SECONDS=15
+FROST_NEAREST_STATION_COUNT=3
 UPSTREAM_TIMEOUT_SECONDS=20
 DEFAULT_H3_RESOLUTION=9
 LIVE_CELL_LIMIT=36
@@ -195,6 +210,7 @@ echo "Local:   http://127.0.0.1:${PORT}/health"
 echo "Public:  ${PUBLIC_URL}"
 echo "Store:   ${LITE_STORE}"
 echo "Status:  ${PUBLIC_STATUS}"
+echo "Frost:   $([[ -n "$FROST_CLIENT_ID" ]] && echo configured || echo not-configured)"
 echo "Config:  $ENV_FILE"
 echo "Deploy:  $DEPLOY_INFO"
 echo "Logs:    journalctl --user -u ${APP_NAME}.service -n 100 --no-pager"
