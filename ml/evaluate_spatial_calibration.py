@@ -15,7 +15,12 @@ from typing import Any
 
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.metrics import average_precision_score, brier_score_loss, log_loss, roc_auc_score
+from sklearn.metrics import (
+    average_precision_score,
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+)
 from sklearn.model_selection import StratifiedGroupKFold
 
 from compare_spatial_models import MODEL_FACTORIES, RANDOM_STATE
