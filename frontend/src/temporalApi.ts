@@ -82,6 +82,48 @@ export type SpatialTemporalForecast = {
   scientific_guardrail: string
 }
 
+export type ObservedWeatherDay = {
+  source_id: string
+  reference_time: string
+  value_mm: number
+  quality_code: number | string | null
+  time_offset: string | null
+  time_resolution: string | null
+}
+
+export type ObservedWeatherHistory = {
+  available: boolean
+  provider: string
+  observed: boolean
+  reason?: string
+  center?: [number, number]
+  source?: {
+    id: string
+    name: string | null
+    distance_km: number | null
+  }
+  candidate_sources?: Array<{
+    id: string
+    name: string | null
+    distance_km: number | null
+  }>
+  element?: string
+  daily_standard_periods?: ObservedWeatherDay[]
+  antecedent_precip_24h_standard_mm?: number | null
+  antecedent_precip_72h_standard_mm?: number | null
+  antecedent_precip_168h_standard_mm?: number | null
+  latest_reference_time?: string | null
+  data_quality?: {
+    daily_periods_available: number
+    requested_history_days: number
+    source_distance_km: number | null
+    meaning: string
+  }
+  aggregation_semantics?: string
+  scientific_guardrail?: string
+  probability_claim_allowed: false
+}
+
 async function requestJson(url: string): Promise<unknown> {
   if (window.mykoDesktop?.isDesktop) {
     const result = await window.mykoDesktop.httpRequest(url, {
@@ -149,4 +191,20 @@ export async function fetchSpatialTemporalForecast(
     max_weather_nodes: String(Math.max(1, Math.min(16, Math.round(maxWeatherNodes)))),
   })
   return await requestJson(`${base}/api/v1/temporal/cells?${params}`) as SpatialTemporalForecast
+}
+
+export async function fetchObservedWeatherHistory(
+  lat: number,
+  lon: number,
+  days = 14,
+): Promise<ObservedWeatherHistory> {
+  const base = getApiBaseUrl()
+  if (!base) throw new Error('Observed weather requires the MykoKnoks HTTPS API.')
+
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lon),
+    days: String(Math.max(7, Math.min(31, Math.round(days)))),
+  })
+  return await requestJson(`${base}/api/v1/observed-weather?${params}`) as ObservedWeatherHistory
 }
