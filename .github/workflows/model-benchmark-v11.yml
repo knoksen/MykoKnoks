@@ -1,0 +1,115 @@
+name: v1.1 Spatial Model Benchmark
+
+on:
+  push:
+    branches:
+      - v1.1-validated-habitat
+  pull_request:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install ML and lint dependencies
+        run: pip install -e './backend[dev,ml]'
+      - name: Lint benchmark
+        run: ruff check compare_spatial_models.py
+        working-directory: ml
+      - name: Build synthetic spatial dataset
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          path = Path('/tmp/mykoknoks-v11-benchmark.csv')
+          fields = [
+              'open_land_score','wetland_score','forest_score','substrate_moisture_score',
+              'elevation_m','slope_deg','terrain_roughness_m','present','spatial_block'
+          ]
+          with path.open('w', newline='') as handle:
+              writer = csv.DictWriter(handle, fieldnames=fields)
+              writer.writeheader()
+              for group in range(20):
+                  # Two presences + two sampled-background rows per spatial group.
+                  for offset in (0.0, 0.03):
+                      writer.writerow({
+                          'open_land_score': 0.78 + offset,
+                          'wetland_score': 0.20 + (group % 4) * 0.01,
+                          'forest_score': 0.18 + (group % 3) * 0.01,
+                          'substrate_moisture_score': 0.68 + offset,
+                          'elevation_m': 55 + group * 2,
+                          'slope_deg': 2.5 + (group % 5) * 0.3,
+                          'terrain_roughness_m': 0.9 + (group % 4) * 0.15,
+                          'present': 1,
+                          'spatial_block': f'g{group:02d}',
+                      })
+                  for offset in (0.0, 0.04):
+                      writer.writerow({
+                          'open_land_score': 0.32 + offset,
+                          'wetland_score': 0.38 + (group % 3) * 0.01,
+                          'forest_score': 0.66 - offset,
+                          'substrate_moisture_score': 0.42 + offset,
+                          'elevation_m': 145 + group * 3,
+                          'slope_deg': 8.0 + (group % 6) * 0.5,
+                          'terrain_roughness_m': 2.8 + (group % 5) * 0.2,
+                          'present': 0,
+                          'spatial_block': f'g{group:02d}',
+                      })
+          print(path)
+          PY
+      - name: Compare all v1.1 habitat candidates
+        run: |
+          python compare_spatial_models.py /tmp/mykoknoks-v11-benchmark.csv \
+            --species 'Psilocybe semilanceata' \
+            --folds 5 \
+            --out-dir /tmp/mykoknoks-v11-benchmark-out
+        working-directory: ml
+      - name: Validate benchmark metrics and scientific guardrails
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          reports = list(Path('/tmp/mykoknoks-v11-benchmark-out').glob('*-model-comparison-v1.1.json'))
+          assert len(reports) == 1
+          report = json.loads(reports[0].read_text())
+
+          assert report['trained'] is True
+          assert report['calibrated'] is False
+          assert report['probability_claim_allowed'] is False
+          assert report['cross_validation']['method'] == 'StratifiedGroupKFold'
+          assert report['cross_validation']['folds'] == 5
+          assert report['cross_validation']['same_partitions_for_all_models'] is True
+          assert report['selection']['promotion_status'] == 'benchmark-only'
+          assert 'antecedent_precip_72h_mm' not in report['feature_contract']
+
+          models = {item['model_key']: item for item in report['models']}
+          assert set(models) == {
+              'logistic_regression',
+              'random_forest',
+              'hist_gradient_boosting',
+          }
+          assert set(report['artifacts']) == set(models)
+
+          expected_hashes = None
+          for model in models.values():
+              assert len(model['fold_metrics']) == 5
+              hashes = [row['test_group_sha256'] for row in model['fold_metrics']]
+              if expected_hashes is None:
+                  expected_hashes = hashes
+              else:
+                  assert hashes == expected_hashes
+              for metric in ('roc_auc', 'pr_auc', 'brier_score', 'log_loss'):
+                  assert metric in model['summary']
+                  assert 'mean' in model['summary'][metric]
+                  assert 'variance' in model['summary'][metric]
+              for row in model['fold_metrics']:
+                  assert {'roc_auc','pr_auc','brier_score','log_loss'} <= row.keys()
+
+          assert 'not calibrated occurrence probabilities' in report['scientific_guardrail']
+          print('v1.1 spatial model benchmark gate passed')
+          PY
