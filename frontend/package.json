@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "h3-js": "^4.3.0",
-    "maplibre-gl": "^5.7.1",
+    "maplibre-gl": "^6.8.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
