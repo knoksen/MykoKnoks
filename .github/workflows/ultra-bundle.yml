@@ -12,6 +12,9 @@ on:
       - 'scripts/ingest_live_features.py'
       - '.github/workflows/ultra-bundle.yml'
 
+permissions:
+  contents: read
+
 jobs:
   package:
     runs-on: ubuntu-latest
