@@ -23,6 +23,8 @@ jobs:
         run: bash -n deploy/ultra/*.sh
       - name: Compile operational Python tools
         run: python -m py_compile scripts/*.py ml/*.py
+      - name: Validate curated research bank
+        run: python scripts/validate_research_bank.py
       - name: Validate lightweight H3 and occurrence stores
         run: |
           python scripts/init_lite_feature_store.py /tmp/mykoknoks-ci.sqlite
