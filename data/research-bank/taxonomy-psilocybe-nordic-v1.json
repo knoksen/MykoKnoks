@@ -1,0 +1,166 @@
+{
+  "$schema": "./taxonomy-record.schema.json",
+  "dataset": {
+    "id": "mykoknoks-nordic-psilocybe-seed-v1",
+    "title": "Nordic Psilocybe research-bank seed",
+    "version": "1.0.0",
+    "as_of": "2026-09-20",
+    "scope": "Curated research leads and evidence states for Norwegian/Nordic Psilocybe work. Not an identification guide or confirmed occurrence checklist.",
+    "scientific_boundary": [
+      "A taxon registry entry is not evidence of occurrence in nature.",
+      "A photograph is not a voucher or molecular identification.",
+      "Historical determinations remain in the audit trail after re-identification.",
+      "Candidate, conflicted and cultivation-related records must not be promoted to verified wild occurrence.",
+      "Public exports must not expose sensitive exact localities."
+    ]
+  },
+  "taxa": [
+    {
+      "scientific_name": "Psilocybe semilanceata",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "established",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5242507,
+      "artsdatabanken_taxon_id": 55311,
+      "ncbi_taxid": 181775,
+      "species_fungorum_id": "232492",
+      "historical_names": [
+        "Agaricus semilanceatus",
+        "Panaeolus semilanceatus"
+      ],
+      "research_note": "Established in Norway; historical literature and preserved collections document broad distribution.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20semilanceata"
+      ]
+    },
+    {
+      "scientific_name": "Psilocybe medullosa",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical_revised_material",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5459286,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 1295541,
+      "species_fungorum_id": "532147",
+      "historical_names": [
+        "Naucoria medullosa",
+        "Galerina medullosa",
+        "Phaeogalera medullosa",
+        "Psilocybe atrobrunnea (Norwegian material later revised)"
+      ],
+      "research_note": "Norwegian Høiland material identified as P. atrobrunnea was later revised molecularly to P. medullosa; original provenance must remain visible.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20medullosa",
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4510267/"
+      ]
+    },
+    {
+      "scientific_name": "Psilocybe cyanescens",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "conflicted",
+      "evidence_grade": "C",
+      "gbif_taxon_key": 5242465,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 93625,
+      "species_fungorum_id": "290108",
+      "historical_names": [],
+      "research_note": "Historical Norwegian material is linked to voucher O:F:177904 and was later treated as P. arcana / P. cf. arcana. Do not double-count the names.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20cyanescens",
+        "https://www.gbif.org/occurrence/2332387273",
+        "https://doi.org/10.33585/cmy.60202"
+      ]
+    },
+    {
+      "scientific_name": "Psilocybe silvatica",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical_material_needs_revision",
+      "evidence_grade": "C",
+      "gbif_taxon_key": 5459328,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 71951,
+      "species_fungorum_id": "304494",
+      "historical_names": [],
+      "research_note": "Pre-2015 Norwegian vouchers O 74869 (1990) and O 294107 (2010) are located; the P. medullosa/silvatica complex requires modern revision.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20silvatica"
+      ]
+    },
+    {
+      "scientific_name": "Psilocybe strictipes",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical_material_needs_revision",
+      "evidence_grade": "C",
+      "gbif_taxon_key": 5242481,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 1986387,
+      "species_fungorum_id": "304496",
+      "historical_names": [],
+      "research_note": "Historical Norwegian vouchers O 172735 (1969) and S F272773 (1910) document material presence, not a modern DNA-verified determination.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20strictipes"
+      ]
+    },
+    {
+      "scientific_name": "Psilocybe pelliculosa",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "conflicted",
+      "evidence_grade": "C",
+      "gbif_taxon_key": 5459396,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 201086,
+      "species_fungorum_id": "304491",
+      "historical_names": [],
+      "research_note": "Artsdatabanken indicates Norwegian occurrence, but currently located Norwegian GBIF records begin in 2019; pre-2015 provenance remains unresolved.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20pelliculosa"
+      ]
+    },
+    {
+      "scientific_name": "Psilocybe fimetaria",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "unverified_wild_occurrence",
+      "evidence_grade": "D",
+      "gbif_taxon_key": 5242512,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181763,
+      "species_fungorum_id": "337844",
+      "historical_names": [],
+      "research_note": "No secure pre-2015 Norwegian record is currently located; newer observations must remain outside the 2015 reconstruction.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20fimetaria"
+      ]
+    },
+    {
+      "scientific_name": "Psilocybe cubensis",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "cultivation_related",
+      "evidence_grade": "B_name_only",
+      "gbif_taxon_key": 5242510,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181762,
+      "species_fungorum_id": "290107",
+      "historical_names": [],
+      "research_note": "Tracked for taxonomic completeness, not as evidence of an established Norwegian wild population.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20cubensis"
+      ]
+    }
+  ]
+}
