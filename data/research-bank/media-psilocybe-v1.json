@@ -1,0 +1,81 @@
+{
+  "$schema": "./media-record.schema.json",
+  "dataset_id": "mykoknoks-psilocybe-media-v1",
+  "version": "1.0.0",
+  "as_of": "2026-09-20",
+  "usage_boundary": "Images are visual references only and never constitute occurrence or identification evidence.",
+  "media": [
+    {
+      "scientific_name": "Psilocybe semilanceata",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Psilocybe.semilanceata.Alan.jpg",
+      "creator": "Alan Rockefeller",
+      "license": "CC BY-SA 3.0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    },
+    {
+      "scientific_name": "Psilocybe medullosa",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Psilocybe_medullosa_131201.JPG",
+      "creator": "Mikko Veräjänkorva",
+      "license": "CC BY-SA 4.0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    },
+    {
+      "scientific_name": "Psilocybe cyanescens",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Psilocybe_cyanescens_(Switzerland).jpg",
+      "creator": "Sporulator",
+      "license": "CC BY-SA 3.0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    },
+    {
+      "scientific_name": "Psilocybe silvatica",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Psilocybe_Silvatica.JPG",
+      "creator": "Silvaticus",
+      "license": "CC0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    },
+    {
+      "scientific_name": "Psilocybe strictipes",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Psilocybe_strictipes_imported_from_iNaturalist_photo_5754059_on_22_February_2023.jpg",
+      "creator": "Alan Rockefeller",
+      "license": "CC BY 4.0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    },
+    {
+      "scientific_name": "Psilocybe pelliculosa",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Psilocybe_pelliculosa_Washington.jpg",
+      "creator": "Alan Rockefeller",
+      "license": "CC BY-SA 4.0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    },
+    {
+      "scientific_name": "Psilocybe fimetaria",
+      "source_page": "https://commons.wikimedia.org/wiki/File:P._fimetaria_various_stages_of_development.jpg",
+      "creator": "42DH",
+      "license": "CC BY-SA 4.0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    },
+    {
+      "scientific_name": "Psilocybe cubensis",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Psilocybe_Cubensis_Imire_(Psilocybe_Cubensis_Zimbabwe)_4.jpg",
+      "creator": "Myco-il",
+      "license": "CC BY-SA 4.0",
+      "role": "visual_reference",
+      "occurrence_evidence": false,
+      "identification_evidence": false
+    }
+  ]
+}

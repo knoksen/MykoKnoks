@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/knoksen/MykoKnoks/data/research-bank/taxonomy-record.schema.json",
+  "title": "MykoKnoks Nordic taxonomy research-bank seed",
+  "type": "object",
+  "required": [
+    "dataset",
+    "taxa"
+  ],
+  "properties": {
+    "dataset": {
+      "type": "object",
+      "required": [
+        "id",
+        "version",
+        "as_of",
+        "scientific_boundary"
+      ]
+    },
+    "taxa": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "scientific_name",
+          "rank",
+          "taxonomic_status",
+          "norway_evidence_status",
+          "evidence_grade",
+          "research_note",
+          "source_urls"
+        ],
+        "properties": {
+          "scientific_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rank": {
+            "const": "species"
+          },
+          "family": {
+            "type": "string"
+          },
+          "taxonomic_status": {
+            "type": "string"
+          },
+          "norway_evidence_status": {
+            "type": "string"
+          },
+          "evidence_grade": {
+            "type": "string"
+          },
+          "gbif_taxon_key": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "artsdatabanken_taxon_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "ncbi_taxid": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "species_fungorum_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "historical_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "research_note": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_urls": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      }
+    }
+  }
+}

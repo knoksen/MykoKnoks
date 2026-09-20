@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/knoksen/MykoKnoks/data/research-bank/media-record.schema.json",
+  "title": "MykoKnoks research-bank media manifest",
+  "type": "object",
+  "required": [
+    "dataset_id",
+    "version",
+    "as_of",
+    "usage_boundary",
+    "media"
+  ],
+  "properties": {
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "usage_boundary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "scientific_name",
+          "source_page",
+          "creator",
+          "license",
+          "role",
+          "occurrence_evidence",
+          "identification_evidence"
+        ],
+        "properties": {
+          "scientific_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_page": {
+            "type": "string",
+            "format": "uri"
+          },
+          "creator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "license": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "const": "visual_reference"
+          },
+          "occurrence_evidence": {
+            "const": false
+          },
+          "identification_evidence": {
+            "const": false
+          }
+        }
+      }
+    }
+  }
+}

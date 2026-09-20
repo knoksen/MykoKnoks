@@ -9,6 +9,26 @@ MykoKnoks separates two ecological questions:
 
 The platform never treats a coloured map cell as proof that a species is present.
 
+## Current platform status
+
+The repository now contains the v1.1 candidate workflow for reproducible habitat datasets, grouped spatial validation and model guardrails. The historical v0.2 section below remains as an architecture baseline; current milestone details live in `docs/V1_1_VALIDATED_HABITAT.md`.
+
+## Curated research bank
+
+The first versioned Nordic taxonomy seed is stored in `data/research-bank/`.
+
+- eight priority `Psilocybe` taxa with explicit Norwegian evidence states;
+- historical-name and identifier fields;
+- licensed image-provenance manifest;
+- JSON schemas and dependency-free integrity checks;
+- strict separation between registry presence, occurrence evidence, identification evidence and modelled suitability.
+
+See [Research bank](docs/RESEARCH_BANK.md). Validate locally with:
+
+```bash
+python scripts/validate_research_bank.py
+```
+
 ## v0.2 — Real Norway Data Engine
 
 v0.2 adds an operational data architecture around the original MVP:
