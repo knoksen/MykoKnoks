@@ -2,6 +2,12 @@
 
 This directory connects the operational MykoKnoks platform to the curated Nordic mycology research workflow.
 
+## Notion research workspace
+
+The [Nordic Mycology Research Hub](https://app.notion.com/p/3dbfe29092ad81a18b8ff0ae6586c0ea) holds the working source registry, verification queue, occurrence and evidence records, taxonomy crosswalk, and research tasks. The [2015 baseline working page](https://app.notion.com/p/3ddfe29092ad8119b196fab31a7f9aa0) tracks the unresolved historical eight-species count.
+
+Notion is the review workspace; `data/research-bank/` is the versioned, validated seed consumed by code. Changes between them require a documented source, retrieval date, original and accepted names, evidence rationale, and a review of location and image licensing. A link between records does not imply automatic synchronization or upgrade a candidate occurrence to verified status.
+
 ## Contents
 
 - `taxonomy-psilocybe-nordic-v1.json` — eight priority taxa with explicit Norwegian evidence states, identifiers, historical names and source links.
