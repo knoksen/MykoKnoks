@@ -1,0 +1,46 @@
+name: Research bank maintenance
+
+on:
+  schedule:
+    - cron: '15 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check curated research bank
+        run: python scripts/validate_research_bank.py
+      - name: Verify immutable export and review boundary
+        run: |
+          python scripts/export_research_compass.py \
+            --commit "$(git rev-parse HEAD)" \
+            --output "$RUNNER_TEMP/research-compass-proposal.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ['RUNNER_TEMP']) / 'research-compass-proposal.json'
+          package = json.loads(path.read_text(encoding='utf-8'))
+          records = package['records']
+          assert package['source']['commit_verified'] is True
+          assert package['visibility'] == 'private'
+          assert records and len({row['proposal_key'] for row in records}) == len(records)
+          assert all(
+              row['review_state'] == 'pending'
+              and row['publication_state'] == 'unpublished'
+              and row['wild_occurrence_verified'] is False
+              for row in records
+          )
+          print(f"Verified {len(records)} private, unpublished review proposals")
+          PY
