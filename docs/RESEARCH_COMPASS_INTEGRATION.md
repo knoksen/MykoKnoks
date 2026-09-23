@@ -7,6 +7,7 @@ Updated: 2026-09-23. This contract joins three existing surfaces without treatin
 | Notion Nordic Mycology Research Hub | Working source, taxonomy, evidence and review records | https://app.notion.com/p/3dbfe29092ad81a18b8ff0ae6586c0ea |
 | MykoKnoks GitHub | Versioned, machine-readable research seed | https://github.com/knoksen/MykoKnoks/tree/main/data/research-bank |
 | Jarlhalla Research Compass | Private editorial staging and later reviewed public presentation | https://lovable.dev/projects/0472d1a2-39c5-4a8c-a9cd-ec80100199e9 |
+| NotebookLM | Optional source reading and research notes; homepage link only, no specific notebook or synchronization configured | https://notebook.google.com/ |
 
 ## Import contract
 
