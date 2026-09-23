@@ -10,10 +10,13 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
 
 DEFAULT_SEED = Path(__file__).resolve().parents[1] / "data/research-bank/taxonomy-psilocybe-nordic-v1.json"
+ROOT = DEFAULT_SEED.parents[2]
+SEED_PATH = "data/research-bank/taxonomy-psilocybe-nordic-v1.json"
 SHA_RE = re.compile(r"[0-9a-f]{40}\Z")
 VERSION_RE = re.compile(r"\d+\.\d+\.\d+\Z")
 BLOCKED_STATUSES = {
@@ -22,7 +25,7 @@ BLOCKED_STATUSES = {
 }
 
 
-def proposal(raw: bytes, commit: str) -> dict:
+def proposal(raw: bytes, commit: str, *, commit_verified: bool = False) -> dict:
     if not SHA_RE.fullmatch(commit):
         raise ValueError("--commit must be a full lowercase 40-character Git commit SHA")
     data = json.loads(raw)
@@ -71,9 +74,9 @@ def proposal(raw: bytes, commit: str) -> dict:
         "visibility": "private",
         "source": {
             "repository": "knoksen/MykoKnoks",
-            "path": "data/research-bank/taxonomy-psilocybe-nordic-v1.json",
-            "declared_commit_sha": commit,
-            "commit_verified": False,
+            "path": SEED_PATH,
+            "commit_sha": commit,
+            "commit_verified": commit_verified,
             "payload_sha256": digest,
             "dataset_id": dataset_id,
             "dataset_version": version,
@@ -89,7 +92,19 @@ def main() -> None:
     parser.add_argument("--input", type=Path, default=DEFAULT_SEED)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    result = proposal(args.input.read_bytes(), args.commit)
+    raw = args.input.read_bytes()
+    if not SHA_RE.fullmatch(args.commit):
+        parser.error("--commit must be a full lowercase 40-character Git commit SHA")
+    try:
+        committed = subprocess.run(
+            ["git", "-C", str(ROOT), "show", f"{args.commit}:{SEED_PATH}"],
+            check=True, capture_output=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        parser.error(f"Cannot read the seed at the requested Git commit: {exc}")
+    if raw != committed:
+        parser.error("Input bytes differ from the seed at --commit")
+    result = proposal(raw, args.commit, commit_verified=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {len(result['records'])} private review proposals to {args.output}")
 
