@@ -9,7 +9,7 @@ python scripts/validate_research_bank.py
 python scripts/export_research_compass.py --commit "$(git rev-parse HEAD)" --output research-compass-proposal.json
 ```
 
-The exporter records the SHA declared by the caller, but **does not verify** that the input bytes came from that commit. Its `commit_verified: false` field is deliberate. Before ingestion, the receiving service must fetch `data/research-bank/taxonomy-psilocybe-nordic-v1.json` at `declared_commit_sha`, compare SHA-256 with `payload_sha256`, and reject a mismatch. It must enforce editor authorization and private row-level security on the server. Use `proposal_key` as the idempotency key, preserve the original row and review decision, and create a new proposal for a changed version. Nothing in this package is a verified wild occurrence.
+The exporter compares the input bytes with `data/research-bank/taxonomy-psilocybe-nordic-v1.json` at the supplied commit using local Git. It fails if the bytes differ or the commit is unavailable, and sets `commit_verified: true` only after this check. Before ingestion, the receiving service must independently fetch that path at `commit_sha`, compare SHA-256 with `payload_sha256`, and reject a mismatch. It must enforce editor authorization and private row-level security on the server. Use `proposal_key` as the idempotency key, preserve the original row and review decision, and create a new proposal for a changed version. Nothing in this package is a verified wild occurrence.
 
 ## Research Compass work remaining
 
