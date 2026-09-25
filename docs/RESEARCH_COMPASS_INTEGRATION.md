@@ -17,6 +17,10 @@ Import begins private and unpublished. A reviewer must inspect source URLs, hist
 
 Notion is not publicly readable by the app and is not automatically synchronized. Export from Notion requires a separately scoped connection and a field-by-field review. Never place a Notion token or service-role key in client code.
 
+## Implementation
+
+The import described above is implemented in [`integrations/research-compass/`](../integrations/research-compass/README.md): a Supabase migration, an edge function and a Lovable prompt for the reviewer screen.
+
 ## Reconciliation checkpoint
 
 The GitHub seed contains eight priority taxa; Notion Taxonomy contains a broader 25-row working register. The seed does not represent the report's unresolved historical eight-species list. As of the 2026-09-23 comparison:
