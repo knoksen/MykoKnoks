@@ -1,0 +1,1390 @@
+{
+  "proposal": {
+    "id": "notion-taxonomy-2026-09-23",
+    "status": "awaiting_review",
+    "source": {
+      "system": "notion",
+      "data_source": "collection://0f95fe95-8f11-4dae-bf79-d7814cc2b30b",
+      "database_url": "https://app.notion.com/p/360b160674404028804e582adba1dd1f"
+    },
+    "retrieved_at": "2026-09-23T06:06:00Z",
+    "snapshot_file": "notion-taxonomy-2026-09-23.snapshot.json",
+    "snapshot_sha256": "1e6c238f565f79817e5ce1138179602a4fdea9b9442f900db11fc56f94389368",
+    "base_seed": {
+      "file": "taxonomy-psilocybe-nordic-v1.json",
+      "id": "mykoknoks-nordic-psilocybe-seed-v1",
+      "version": "1.0.0"
+    },
+    "rules": [
+      "Every row is a proposal. Nothing here changes the versioned seed.",
+      "Original Notion values are kept under provenance.original for audit.",
+      "A reviewer approves or rejects each row before a new seed version is cut.",
+      "Variety-level and synonym rows are crosswalk entries, not additional occurrences."
+    ]
+  },
+  "taxa": [
+    {
+      "scientific_name": "Deconica chionophila",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "established",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5955305,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 2744532,
+      "species_fungorum_id": null,
+      "historical_names": [
+        "Psilocybe chionophila"
+      ],
+      "research_note": "Current Norwegian treatment is Deconica chionophila; retain old Psilocybe name for search and historical matching.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20chionophila"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81708174cccd05107813",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20chionophila",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Psilocybe chionophila",
+          "NCBI TaxID": 2744532,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 5955305,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Established",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Current Norwegian treatment is Deconica chionophila; retain old Psilocybe name for search and historical matching.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica chionophila"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica coprophila",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 7989053,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 1418847,
+      "species_fungorum_id": "178700",
+      "historical_names": [
+        "Psilocybe coprophila"
+      ],
+      "research_note": "Historical Psilocybe placement reconciled to current Deconica treatment.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20coprophila"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Denmark"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad819f87dfcadf9443d9ea",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "178700",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20coprophila",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\",\"Denmark\"]",
+          "Historical names": "Psilocybe coprophila",
+          "NCBI TaxID": 1418847,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 7989053,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Psilocybe placement reconciled to current Deconica treatment.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica coprophila"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica crobula",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 3341769,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181761,
+      "species_fungorum_id": "337840",
+      "historical_names": [
+        "Psilocybe crobula",
+        "Psilocybe inquilina var. crobula"
+      ],
+      "research_note": "Historical Høiland variety is retained as a synonym trail; modern treatment is Deconica crobula. \\| AUDIT 2026-09-16: Species Fungorum ID 337840 is filed as \"Psilocybe crobula\" (basionym combination) with current accepted name Deconica crobula — same taxon, name mismatch only, consistent with NCBI TaxID 181761 filed the same way.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20crobula"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81c79887d044810c62e0",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "337840",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20crobula",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Psilocybe crobula; Psilocybe inquilina var. crobula",
+          "NCBI TaxID": 181761,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 3341769,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Høiland variety is retained as a synonym trail; modern treatment is Deconica crobula. \\| AUDIT 2026-09-16: Species Fungorum ID 337840 is filed as \"Psilocybe crobula\" (basionym combination) with current accepted name Deconica crobula — same taxon, name mismatch only, consistent with NCBI TaxID 181761 filed the same way.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica crobula"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica inquilina",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "established",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 2533595,
+      "artsdatabanken_taxon_id": 131607,
+      "ncbi_taxid": 2744536,
+      "species_fungorum_id": "438249",
+      "historical_names": [
+        "Psilocybe inquilina",
+        "Psilocybe muscorum"
+      ],
+      "research_note": "Formerly placed in Psilocybe; database preserves the historical name for literature reconciliation.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20inquilina"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Denmark"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad811a9920d1add4fcb16d",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "438249",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20inquilina",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\",\"Denmark\"]",
+          "Historical names": "Psilocybe inquilina; Psilocybe muscorum",
+          "NCBI TaxID": 2744536,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 2533595,
+          "Taxonomic status": "Accepted",
+          "Artsdatabanken ID": 131607,
+          "Norway evidence status": "Established",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Formerly placed in Psilocybe; database preserves the historical name for literature reconciliation.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica inquilina"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica merdaria",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5955301,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181766,
+      "species_fungorum_id": "515388",
+      "historical_names": [
+        "Psilocybe merdaria"
+      ],
+      "research_note": "Current accepted placement in Deconica; historical Norwegian literature used Psilocybe merdaria.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20merdaria"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad815c90e1ca6d73e74ed1",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "515388",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20merdaria",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Psilocybe merdaria",
+          "NCBI TaxID": 181766,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 5955301,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Current accepted placement in Deconica; historical Norwegian literature used Psilocybe merdaria.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica merdaria"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica montana",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 2533554,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 1418849,
+      "species_fungorum_id": null,
+      "historical_names": [
+        "Psilocybe montana"
+      ],
+      "research_note": "Historical Høiland name reconciled to current genus.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20montana"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81de82d8c4d4e26ba790",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20montana",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Psilocybe montana",
+          "NCBI TaxID": 1418849,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 2533554,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Høiland name reconciled to current genus.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica montana"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica phyllogena",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5955303,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181771,
+      "species_fungorum_id": "515379",
+      "historical_names": [
+        "Psilocybe rhombispora"
+      ],
+      "research_note": "Historical Norwegian Psilocybe rhombispora is tracked as a synonym/crosswalk to modern Deconica phyllogena treatment.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20phyllogena"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81a9b2e9d76b78d8a6a3",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "515379",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20phyllogena",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Psilocybe rhombispora",
+          "NCBI TaxID": 181771,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 5955303,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Norwegian Psilocybe rhombispora is tracked as a synonym/crosswalk to modern Deconica phyllogena treatment.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica phyllogena"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica subcoprophila",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 2533567,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181777,
+      "species_fungorum_id": null,
+      "historical_names": [
+        "Psilocybe subcoprophila"
+      ],
+      "research_note": "Historical Norwegian record name retained for literature crosswalk. \\| AUDIT 2026-09-16: NCBI TaxID 181777 is filed there under the old name \"Psilocybe subcoprophila\" (NCBI taxonomy hasn't caught up to the Deconica transfer) — same taxon, name mismatch only.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Deconica%20subcoprophila"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad816f8527d42a996dcf9b",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Deconica%20subcoprophila",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Psilocybe subcoprophila",
+          "NCBI TaxID": 181777,
+          "Genus": "Deconica",
+          "Rank": "Species",
+          "GBIF key": 2533567,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Norwegian record name retained for literature crosswalk. \\| AUDIT 2026-09-16: NCBI TaxID 181777 is filed there under the old name \"Psilocybe subcoprophila\" (NCBI taxonomy hasn't caught up to the Deconica transfer) — same taxon, name mismatch only.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica subcoprophila"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Deconica subviscida var. velata",
+      "rank": "variety",
+      "family": "Strophariaceae",
+      "genus": "Deconica",
+      "taxonomic_status": "unresolved",
+      "norway_evidence_status": "conflicted",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5955308,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": null,
+      "species_fungorum_id": null,
+      "historical_names": [
+        "Deconica subviscida var. velata (Noordel. & Verduin) Noordel."
+      ],
+      "research_note": "Added 2026-09-16 (data quality audit) — previously had an Occurrence Master row (OBS-28FF7BD5D8D4DC29), a Verification Queue entry, and an Evidence Register voucher entry, but no Taxonomy record at all. GBIF backbone marks this as a SYNONYM rather than Accepted; local status set to Unresolved/Conflicted pending review, consistent with the Occurrence Master note ('Taxonomic scope conflict retained; no automatic verification or merge.'). Source URL points to the GBIF species page rather than Artsdatabanken, since Artsdatabanken source URLs elsewhere in this table were found to be broken (site migrated to [biodiversity.no](http://biodiversity.no)).",
+      "source_urls": [
+        "https://www.gbif.org/species/5955308"
+      ],
+      "nordic_status": [
+        "Norway"
+      ],
+      "last_reviewed": "2026-09-16",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3ddfe29092ad81de97defbec54d86709",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "",
+          "Source": "https://www.gbif.org/species/5955308",
+          "Nordic status": "[\"Norway\"]",
+          "Historical names": "Deconica subviscida var. velata (Noordel. & Verduin) Noordel.",
+          "Genus": "Deconica",
+          "Rank": "Variety",
+          "GBIF key": 5955308,
+          "Taxonomic status": "Unresolved",
+          "Norway evidence status": "Conflicted",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Added 2026-09-16 (data quality audit) — previously had an Occurrence Master row (OBS-28FF7BD5D8D4DC29), a Verification Queue entry, and an Evidence Register voucher entry, but no Taxonomy record at all. GBIF backbone marks this as a SYNONYM rather than Accepted; local status set to Unresolved/Conflicted pending review, consistent with the Occurrence Master note ('Taxonomic scope conflict retained; no automatic verification or merge.'). Source URL points to the GBIF species page rather than Artsdatabanken, since Artsdatabanken source URLs elsewhere in this table were found to be broken (site migrated to [biodiversity.no](http://biodiversity.no)).",
+          "date:Last reviewed:start": "2026-09-16",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Deconica subviscida var. velata"
+        }
+      },
+      "flags": [
+        "rank is 'variety': the v1 seed schema only accepts species",
+        "taxonomic status is 'unresolved': keep as crosswalk, do not count as a separate occurrence"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Leratiomyces magnivelaris",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Leratiomyces",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 2533980,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": null,
+      "species_fungorum_id": null,
+      "historical_names": [
+        "Psilocybe magnivelaris"
+      ],
+      "research_note": "Historical Psilocybe name preserved for literature and specimen matching.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Leratiomyces%20magnivelaris"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81d1b36ad651fc5fd5e2",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Leratiomyces%20magnivelaris",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Psilocybe magnivelaris",
+          "Genus": "Leratiomyces",
+          "Rank": "Species",
+          "GBIF key": 2533980,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Psilocybe name preserved for literature and specimen matching.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Leratiomyces magnivelaris"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Leratiomyces percevalii",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Leratiomyces",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 2533993,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 2231233,
+      "species_fungorum_id": null,
+      "historical_names": [
+        "Psilocybe percevalii"
+      ],
+      "research_note": "Historical Psilocybe placement; current genus Leratiomyces. Norwegian presence includes introduced contexts.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Leratiomyces%20percevalii"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Denmark"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad811c9150d278dc4d941f",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Leratiomyces%20percevalii",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Denmark\"]",
+          "Historical names": "Psilocybe percevalii",
+          "NCBI TaxID": 2231233,
+          "Genus": "Leratiomyces",
+          "Rank": "Species",
+          "GBIF key": 2533993,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Psilocybe placement; current genus Leratiomyces. Norwegian presence includes introduced contexts.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Leratiomyces percevalii"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Leratiomyces squamosus",
+      "rank": "species",
+      "family": "Strophariaceae",
+      "genus": "Leratiomyces",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 3343690,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": null,
+      "species_fungorum_id": "511256",
+      "historical_names": [
+        "Psilocybe squamosa",
+        "Psilocybe thrausta"
+      ],
+      "research_note": "Historical Norwegian Psilocybe names retained for cross-reference.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Leratiomyces%20squamosus"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Denmark"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad819a8afdef70a415fd11",
+        "original": {
+          "Family": "Strophariaceae",
+          "Species Fungorum ID": "511256",
+          "Source": "https://artsdatabanken.no/taxon/Leratiomyces%20squamosus",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\",\"Denmark\"]",
+          "Historical names": "Psilocybe squamosa; Psilocybe thrausta",
+          "Genus": "Leratiomyces",
+          "Rank": "Species",
+          "GBIF key": 3343690,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical Norwegian Psilocybe names retained for cross-reference.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Leratiomyces squamosus"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe arcana",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "synonym",
+      "norway_evidence_status": "conflicted",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5459309,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 797116,
+      "species_fungorum_id": "515724",
+      "historical_names": [],
+      "research_note": "Historical species-level name connected to the disputed Norwegian cyanescens record. O 177904 was examined under P. arcana in Borovička 2008. Borovička et al. 2011 found no sequence variation across three markers among P. serbica, P. bohemica, P. arcana and P. moravica, merging them into P. serbica and retaining arcana below species level as P. serbica var. arcana. Species Fungorum ID 515724 and NCBI TaxID 797116 refer to the variety. The Norwegian voucher itself has not been shown to carry a public DNA sequence and remains catalogued P. cf. arcana.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20arcana"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-17",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81179ca1eda3323ab439",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "515724",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20arcana",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "",
+          "NCBI TaxID": 797116,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5459309,
+          "Taxonomic status": "Synonym",
+          "Norway evidence status": "Conflicted",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Historical species-level name connected to the disputed Norwegian cyanescens record. O 177904 was examined under P. arcana in Borovička 2008. Borovička et al. 2011 found no sequence variation across three markers among P. serbica, P. bohemica, P. arcana and P. moravica, merging them into P. serbica and retaining arcana below species level as P. serbica var. arcana. Species Fungorum ID 515724 and NCBI TaxID 797116 refer to the variety. The Norwegian voucher itself has not been shown to carry a public DNA sequence and remains catalogued P. cf. arcana.",
+          "date:Last reviewed:start": "2026-09-17",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe arcana"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken",
+        "taxonomic status is 'synonym': keep as crosswalk, do not count as a separate occurrence"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe cubensis",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "cultivation_related",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5242510,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181762,
+      "species_fungorum_id": "290107",
+      "historical_names": [],
+      "research_note": "Tracked for taxonomic completeness, but not treated as evidence of an established Norwegian wild population; Norwegian context is cultivation-related.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20cubensis"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Denmark",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81bea9aef430687d5ca7",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "290107",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20cubensis",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Denmark\",\"Finland\"]",
+          "Historical names": "",
+          "NCBI TaxID": 181762,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5242510,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Cultivation-related",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Tracked for taxonomic completeness, but not treated as evidence of an established Norwegian wild population; Norwegian context is cultivation-related.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe cubensis"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe cyanescens",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "conflicted",
+      "evidence_grade": "C",
+      "gbif_taxon_key": 5242465,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 93625,
+      "species_fungorum_id": "290108",
+      "historical_names": [],
+      "research_note": "Historical Norwegian material is voucher O:F:177904. Borovička treated it as P. arcana; the current catalogue wording P. cf. arcana remains conditional. Do not double-count cyanescens and arcana.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20cyanescens"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Denmark"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad815da7fdf843ca68fd16",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "290108",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20cyanescens",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\",\"Denmark\"]",
+          "Historical names": "",
+          "NCBI TaxID": 93625,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5242465,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Conflicted",
+          "Evidence grade": "C — secondary source",
+          "Notes": "Historical Norwegian material is voucher O:F:177904. Borovička treated it as P. arcana; the current catalogue wording P. cf. arcana remains conditional. Do not double-count cyanescens and arcana.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe cyanescens"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe fimetaria",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "cultivation_related",
+      "evidence_grade": "D",
+      "gbif_taxon_key": 5242512,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181763,
+      "species_fungorum_id": "337844",
+      "historical_names": [],
+      "research_note": "No secure pre-2015 Norwegian record has been located. The currently located Norwegian observation is from 2022 and must not be used in the 2015 reconstruction.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20fimetaria"
+      ],
+      "nordic_status": [
+        "Sweden",
+        "Finland",
+        "Norway"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81bab249cd681d63017a",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "337844",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20fimetaria",
+          "Nordic status": "[\"Sweden\",\"Finland\",\"Norway\"]",
+          "Historical names": "",
+          "NCBI TaxID": 181763,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5242512,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Cultivation-related",
+          "Evidence grade": "D — community report",
+          "Notes": "No secure pre-2015 Norwegian record has been located. The currently located Norwegian observation is from 2022 and must not be used in the 2015 reconstruction.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe fimetaria"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe liberatis",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "no_evidence_found",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 8484926,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": null,
+      "species_fungorum_id": null,
+      "historical_names": [],
+      "research_note": "Listed in the current Norwegian genus overview; occurrence evidence still needs direct record validation.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20liberatis"
+      ],
+      "nordic_status": [
+        "Norway"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad815b9fc5d07ea6013d18",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20liberatis",
+          "Nordic status": "[\"Norway\"]",
+          "Historical names": "",
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 8484926,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "No evidence found",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Listed in the current Norwegian genus overview; occurrence evidence still needs direct record validation.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe liberatis"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe liniformans",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "no_evidence_found",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5459532,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 181765,
+      "species_fungorum_id": null,
+      "historical_names": [],
+      "research_note": "Current Nordic taxon; no authoritative Norwegian occurrence was established during this review.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20liniformans"
+      ],
+      "nordic_status": [
+        "Sweden",
+        "Finland",
+        "Norway"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81bb9c1ddc15f2f20d1c",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20liniformans",
+          "Nordic status": "[\"Sweden\",\"Finland\",\"Norway\"]",
+          "Historical names": "",
+          "NCBI TaxID": 181765,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5459532,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "No evidence found",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Current Nordic taxon; no authoritative Norwegian occurrence was established during this review.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe liniformans"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe medullosa",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "historical",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5459286,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 1295541,
+      "species_fungorum_id": "532147",
+      "historical_names": [
+        "Naucoria medullosa",
+        "Galerina medullosa",
+        "Phaeogalera medullosa"
+      ],
+      "research_note": "Modern molecular work revised Norwegian Høiland material identified as P. atrobrunnea to P. medullosa; historical provenance is retained as an audit trail.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20medullosa"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81eba137c154aea5cd5a",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "532147",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20medullosa",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "Naucoria medullosa; Galerina medullosa; Phaeogalera medullosa",
+          "NCBI TaxID": 1295541,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5459286,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Historical",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Modern molecular work revised Norwegian Høiland material identified as P. atrobrunnea to P. medullosa; historical provenance is retained as an audit trail.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe medullosa"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": [
+          "historical names in seed but not in Notion: *Psilocybe atrobrunnea (Norwegian material later revised)*"
+        ]
+      }
+    },
+    {
+      "scientific_name": "Psilocybe pelliculosa",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "conflicted",
+      "evidence_grade": "C",
+      "gbif_taxon_key": 5459396,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 201086,
+      "species_fungorum_id": "304491",
+      "historical_names": [],
+      "research_note": "Artsdatabanken indicates Norwegian occurrence, but currently located Norwegian GBIF records begin in 2019. Pre-2015 provenance remains unresolved.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20pelliculosa"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81f3af71edeb47c0ab04",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "304491",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20pelliculosa",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "",
+          "NCBI TaxID": 201086,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5459396,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Conflicted",
+          "Evidence grade": "C — secondary source",
+          "Notes": "Artsdatabanken indicates Norwegian occurrence, but currently located Norwegian GBIF records begin in 2019. Pre-2015 provenance remains unresolved.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe pelliculosa"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe puberula",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "no_evidence_found",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5459375,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": null,
+      "species_fungorum_id": null,
+      "historical_names": [],
+      "research_note": "Listed in the Norwegian Psilocybe taxon overview; no robust Norwegian occurrence evidence was established in this pass.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20puberula"
+      ],
+      "nordic_status": [
+        "Norway"
+      ],
+      "last_reviewed": "2026-09-14",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81f48ea6fa253343b299",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20puberula",
+          "Nordic status": "[\"Norway\"]",
+          "Historical names": "",
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5459375,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "No evidence found",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Listed in the Norwegian Psilocybe taxon overview; no robust Norwegian occurrence evidence was established in this pass.",
+          "date:Last reviewed:start": "2026-09-14",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe puberula"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe semilanceata",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "established",
+      "evidence_grade": "B",
+      "gbif_taxon_key": 5242507,
+      "artsdatabanken_taxon_id": 55311,
+      "ncbi_taxid": 181775,
+      "species_fungorum_id": "232492",
+      "historical_names": [
+        "Agaricus semilanceatus",
+        "Panaeolus semilanceatus"
+      ],
+      "research_note": "Established in Norway; historical literature and collections document broad distribution. Exact localities remain excluded from public summaries.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20semilanceata"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Denmark",
+        "Iceland",
+        "Faroe Islands"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad8130aa00da7a2cbf9169",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "232492",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20semilanceata",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\",\"Denmark\",\"Iceland\",\"Faroe Islands\"]",
+          "Historical names": "Agaricus semilanceatus; Panaeolus semilanceatus",
+          "NCBI TaxID": 181775,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5242507,
+          "Taxonomic status": "Accepted",
+          "Artsdatabanken ID": 55311,
+          "Norway evidence status": "Established",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Established in Norway; historical literature and collections document broad distribution. Exact localities remain excluded from public summaries.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe semilanceata"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe serbica var. arcana",
+      "rank": "variety",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "conflicted",
+      "evidence_grade": "B",
+      "gbif_taxon_key": null,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 797116,
+      "species_fungorum_id": "515724",
+      "historical_names": [
+        "Psilocybe arcana Borov. & Hlaváček"
+      ],
+      "research_note": "Current molecular treatment of the arcana morphotype within P. serbica. Norwegian voucher O 177904 was examined as P. arcana in 2008, but its current catalogue determination remains P. cf. arcana and no specimen-specific public sequence was found. Do not treat the variety-level name as an additional occurrence.",
+      "source_urls": [
+        "https://link.springer.com/article/10.1007/s11557-010-0684-3"
+      ],
+      "nordic_status": [
+        "Norway"
+      ],
+      "last_reviewed": "2026-09-17",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3defe29092ad8145a19ad5ed4c89b3a2",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "515724",
+          "Source": "https://link.springer.com/article/10.1007/s11557-010-0684-3",
+          "Nordic status": "[\"Norway\"]",
+          "Historical names": "Psilocybe arcana Borov. & Hlaváček",
+          "NCBI TaxID": 797116,
+          "Genus": "Psilocybe",
+          "Rank": "Variety",
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Conflicted",
+          "Evidence grade": "B — authoritative database / literature",
+          "Notes": "Current molecular treatment of the arcana morphotype within P. serbica. Norwegian voucher O 177904 was examined as P. arcana in 2008, but its current catalogue determination remains P. cf. arcana and no specimen-specific public sequence was found. Do not treat the variety-level name as an additional occurrence.",
+          "date:Last reviewed:start": "2026-09-17",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe serbica var. arcana"
+        }
+      },
+      "flags": [
+        "rank is 'variety': the v1 seed schema only accepts species"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": false,
+        "differences": []
+      }
+    },
+    {
+      "scientific_name": "Psilocybe silvatica",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "unverified",
+      "evidence_grade": "D",
+      "gbif_taxon_key": 5459328,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 71951,
+      "species_fungorum_id": "304494",
+      "historical_names": [],
+      "research_note": "Pre-2015 Norwegian vouchers O 74869 (1990) and O 294107 (2010) have been located. Material presence is documented, but modern revision is needed because of the P. medullosa/silvatica complex.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20silvatica"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad818481a3eeeb88db8d19",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "304494",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20silvatica",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "",
+          "NCBI TaxID": 71951,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5459328,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Unverified",
+          "Evidence grade": "D — community report",
+          "Notes": "Pre-2015 Norwegian vouchers O 74869 (1990) and O 294107 (2010) have been located. Material presence is documented, but modern revision is needed because of the P. medullosa/silvatica complex.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe silvatica"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": [
+          "evidence grade: seed **C**, Notion **D**"
+        ]
+      }
+    },
+    {
+      "scientific_name": "Psilocybe strictipes",
+      "rank": "species",
+      "family": "Hymenogastraceae",
+      "genus": "Psilocybe",
+      "taxonomic_status": "accepted",
+      "norway_evidence_status": "unverified",
+      "evidence_grade": "C",
+      "gbif_taxon_key": 5242481,
+      "artsdatabanken_taxon_id": null,
+      "ncbi_taxid": 1986387,
+      "species_fungorum_id": "304496",
+      "historical_names": [],
+      "research_note": "Historical Norwegian vouchers O 172735 (1969) and S F272773 (1910) have been located. They document material presence, not a modern DNA-verified determination.",
+      "source_urls": [
+        "https://artsdatabanken.no/taxon/Psilocybe%20strictipes"
+      ],
+      "nordic_status": [
+        "Norway",
+        "Sweden",
+        "Finland"
+      ],
+      "last_reviewed": "2026-09-19",
+      "review_state": "proposed",
+      "provenance": {
+        "notion_page_url": "https://app.notion.com/p/3dbfe29092ad81ff8b0ee7cf45cc5a7f",
+        "original": {
+          "Family": "Hymenogastraceae",
+          "Species Fungorum ID": "304496",
+          "Source": "https://artsdatabanken.no/taxon/Psilocybe%20strictipes",
+          "Nordic status": "[\"Norway\",\"Sweden\",\"Finland\"]",
+          "Historical names": "",
+          "NCBI TaxID": 1986387,
+          "Genus": "Psilocybe",
+          "Rank": "Species",
+          "GBIF key": 5242481,
+          "Taxonomic status": "Accepted",
+          "Norway evidence status": "Unverified",
+          "Evidence grade": "C — secondary source",
+          "Notes": "Historical Norwegian vouchers O 172735 (1969) and S F272773 (1910) have been located. They document material presence, not a modern DNA-verified determination.",
+          "date:Last reviewed:start": "2026-09-19",
+          "date:Last reviewed:is_datetime": 0,
+          "Name": "Psilocybe strictipes"
+        }
+      },
+      "flags": [
+        "source uses the old artsdatabanken.no/taxon URL form, which the 2026-09-16 audit found broken"
+      ],
+      "seed_comparison": {
+        "in_seed_v1": true,
+        "differences": []
+      }
+    }
+  ]
+}
