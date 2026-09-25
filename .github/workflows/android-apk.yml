@@ -5,6 +5,9 @@ on:
     branches: [android-oneplus]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   apk:
     runs-on: ubuntu-latest
