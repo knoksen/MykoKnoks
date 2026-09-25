@@ -6,6 +6,9 @@ on:
       - v1.1-validated-habitat
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
