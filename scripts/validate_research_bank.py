@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from urllib.parse import urlparse
@@ -65,7 +66,30 @@ def main() -> None:
         if row["occurrence_evidence"] or row["identification_evidence"]:
             raise ValueError(f"{row['scientific_name']}: visual reference promoted to evidence")
 
-    print(f"Research bank validated: {len(taxa)} taxa, {len(media_rows)} media records")
+    proposals = validate_proposals()
+    print(f"Research bank validated: {len(taxa)} taxa, {len(media_rows)} media records, {proposals} pending proposal file(s)")
+
+
+def validate_proposals() -> int:
+    """Proposal files must stay reviewable: pinned to a snapshot, never self-promoted."""
+    folder = BANK / "proposals"
+    count = 0
+    for path in sorted(folder.glob("*.proposal.json")) if folder.exists() else []:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        meta = doc["proposal"]
+        snap = folder / meta["snapshot_file"]
+        if hashlib.sha256(snap.read_bytes()).hexdigest() != meta["snapshot_sha256"]:
+            raise ValueError(f"{path.name}: snapshot hash does not match {snap.name}")
+        names = [row["scientific_name"] for row in doc["taxa"]]
+        if len(names) != len(set(names)):
+            raise ValueError(f"{path.name}: duplicate scientific_name")
+        for row in doc["taxa"]:
+            if row.get("review_state") != "proposed":
+                raise ValueError(f"{path.name}: {row['scientific_name']} is not in 'proposed' state; approved rows belong in a new seed version")
+            if not row.get("provenance", {}).get("original"):
+                raise ValueError(f"{path.name}: {row['scientific_name']} lost its original source values")
+        count += 1
+    return count
 
 
 if __name__ == "__main__":
