@@ -8,6 +8,10 @@ The [Nordic Mycology Research Hub](https://app.notion.com/p/3dbfe29092ad81a18b8f
 
 Notion is the review workspace; `data/research-bank/` is the versioned, validated seed consumed by code. Changes between them require a documented source, retrieval date, original and accepted names, evidence rationale, and a review of location and image licensing. A link between records does not imply automatic synchronization or upgrade a candidate occurrence to verified status.
 
+## Proposals from Notion
+
+`scripts/notion_taxonomy_proposal.py` turns a raw snapshot of the Notion taxonomy database into `data/research-bank/proposals/notion-taxonomy-<date>.proposal.json` and a review report in `docs/proposals/`. The raw snapshot is stored next to the proposal and pinned by SHA-256. Every row stays in `proposed` state with its original Notion values; the validator fails if a row is marked otherwise. Approved changes go into a new seed version, never into the proposal file.
+
 ## Contents
 
 - `taxonomy-psilocybe-nordic-v1.json` — eight priority taxa with explicit Norwegian evidence states, identifiers, historical names and source links.
