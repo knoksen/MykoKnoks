@@ -1,0 +1,51 @@
+name: Domain deployment candidate
+on:
+  pull_request:
+    paths:
+      - 'deploy/jarlhalla/**'
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/domain-deployment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  container-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose and start isolated candidate
+        run: |
+          docker compose -f deploy/jarlhalla/compose.yml config --quiet
+          docker compose -f deploy/jarlhalla/compose.yml up --build -d --wait --wait-timeout 120
+      - name: Check app assets, proxy prefix and API health
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from urllib.request import urlopen
+          from urllib.parse import urljoin
+          base = 'http://127.0.0.1:18180'
+          def read(path):
+              with urlopen(base + path, timeout=20) as response:
+                  return response.read().decode(), response.headers.get('Content-Type', '')
+          html, kind = read('/app/')
+          assert 'text/html' in kind
+          assets = re.findall(r'(?:src|href)=["\x27]([^"\x27]+\.(?:js|css))["\x27]', html)
+          assert assets
+          for asset in assets:
+              assert asset.startswith('/app/'), asset
+              body, mime = read(asset)
+              assert body and 'text/html' not in mime, (asset, mime)
+          body, mime = read('/mykoknoks-api/health')
+          health = json.loads(body)
+          assert 'json' in mime and health['status'] == 'ok'
+          assert health['root_path'] == '/mykoknoks-api'
+          print('PASS: isolated app assets and API reverse proxy')
+          PY
+      - name: Capture diagnostics
+        if: failure()
+        run: docker compose -f deploy/jarlhalla/compose.yml logs --no-color
+      - name: Stop candidate
+        if: always()
+        run: docker compose -f deploy/jarlhalla/compose.yml down
